@@ -1,18 +1,39 @@
 import argparse
-import matplotlib
-matplotlib.use("MacOSX")
+import os
+from pathlib import Path
+import sys
+
+try:
+    import matplotlib
+except ModuleNotFoundError as exc:
+    sys.exit(
+        "Matplotlib is not installed. Install it with 'python3 -m pip install matplotlib' and rerun."
+    )
+
+if "MPLBACKEND" not in os.environ:
+    for backend in ("TkAgg", "Qt5Agg", "Agg"):
+        try:
+            matplotlib.use(backend)
+            break
+        except Exception:
+            continue
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import os
 
 # ── CLI args ───────────────────────────────────────────────────────────────────
 
 parser = argparse.ArgumentParser(description="Particle Simulation Visualizer")
 parser.add_argument("--rc", type=float, default=None,
                     help="Detection radius (overrides value in static.txt)")
+default_bin = Path(__file__).resolve().parents[4] / "tp1-output"
+parser.add_argument("--input-dir", type=Path, default=default_bin,
+                    help="Directory containing static.txt, dynamic.txt, neighbors.txt")
 args = parser.parse_args()
 
-BIN_PATH = "/Users/josefinagonzalezcornet/Desktop/1c2026/sds/SDS_TPs/tp1-output"
+BIN_PATH = args.input_dir.expanduser().resolve()
+if not BIN_PATH.exists():
+    sys.exit(f"Input directory '{BIN_PATH}' not found. Generate data with the Java project first.")
 
 # ── Parsers ────────────────────────────────────────────────────────────────────
 
@@ -71,9 +92,9 @@ def parse_neighbors(path):
 
 # ── Load data ──────────────────────────────────────────────────────────────────
 
-static_path   = os.path.join(BIN_PATH, "static.txt")
-dynamic_path  = os.path.join(BIN_PATH, "dynamic.txt")
-neighbor_path = os.path.join(BIN_PATH, "neighbors.txt")
+static_path   = BIN_PATH / "static.txt"
+dynamic_path  = BIN_PATH / "dynamic.txt"
+neighbor_path = BIN_PATH / "neighbors.txt"
 
 N, L, radii, rc = parse_static(static_path)
 if args.rc is not None:

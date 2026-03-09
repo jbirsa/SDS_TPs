@@ -1,22 +1,25 @@
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Main {
 
     // Default parameters
-    private static final int    N_DEFAULT     = 500;
+    private static final int    N_DEFAULT     = 100;
     private static final double L_DEFAULT     = 20.0;
     private static final int    M_DEFAULT     = -1;   // -1 = auto-compute optimal
     private static final double RC_DEFAULT    = 1.0;
     private static final double R_MIN         = 0.23;
     private static final double R_MAX         = 0.26;
-    private static final boolean PBC_DEFAULT  = false;
+    private static final boolean PBC_DEFAULT  = true;
     private static final int    HIGHLIGHT_ID  = 5;
     private static final int    RUNS_DEFAULT  = 10;
 
-    private static final String OUTPUT_PATH = "/Users/josefinagonzalezcornet/Desktop/1c2026/sds/SDS_TPs/tp1-output/";
+    private static final Path OUTPUT_DIR = resolveOutputDir();
 
     public static void main(String[] args) throws IOException {
 
@@ -104,10 +107,10 @@ public class Main {
                 System.out.printf("Neighbors of particle %d (last run): %s%n", highlightId, highlighted);
             }
 
-            writeStaticFile(OUTPUT_PATH + "static.txt",  lastParticles, L);
-            writeDynamicFile(OUTPUT_PATH + "dynamic.txt", lastParticles);
-            writeNeighborsFile(OUTPUT_PATH + "neighbors.txt", lastNeighbors);
-            writeOvitoFile(OUTPUT_PATH + "ovito.xyz", lastParticles, lastNeighbors, highlightId);
+            writeStaticFile(outputPath("static.txt"),  lastParticles, L);
+            writeDynamicFile(outputPath("dynamic.txt"), lastParticles);
+            writeNeighborsFile(outputPath("neighbors.txt"), lastNeighbors);
+            writeOvitoFile(outputPath("ovito.xyz"), lastParticles, lastNeighbors, highlightId);
 
             System.out.println("Output files written (last run): static.txt, dynamic.txt, neighbors.txt, ovito.xyz");
         }
@@ -199,5 +202,40 @@ public class Main {
 
     private static long argLong(String[] args, int i, long def) {
         return (args.length > i) ? Long.parseLong(args[i]) : def;
+    }
+
+    private static Path resolveOutputDir() {
+        String override = System.getProperty("output.dir");
+        if (override != null && !override.isBlank()) {
+            return ensureDirectory(Paths.get(override).toAbsolutePath());
+        }
+
+        Path cwd = Paths.get("").toAbsolutePath();
+        Path repoDir = cwd.getParent();
+        Path[] candidates = new Path[] {
+                cwd.resolve("tp1-output"),
+                (repoDir != null) ? repoDir.resolve("tp1-output") : null
+        };
+
+        for (Path candidate : candidates) {
+            if (candidate != null && Files.isDirectory(candidate)) {
+                return candidate;
+            }
+        }
+
+        return ensureDirectory(candidates[0]);
+    }
+
+    private static Path ensureDirectory(Path path) {
+        try {
+            Files.createDirectories(path);
+            return path;
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to create output directory: " + path, e);
+        }
+    }
+
+    private static String outputPath(String fileName) {
+        return OUTPUT_DIR.resolve(fileName).toString();
     }
 }
