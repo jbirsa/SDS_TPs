@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
-    <artifactId>tp1</artifactId>
+    <groupId>ar.edu.itba</groupId>
+    <artifactId>tp1-code</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>

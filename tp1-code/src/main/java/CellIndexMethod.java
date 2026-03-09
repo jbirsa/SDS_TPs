@@ -1,5 +1,3 @@
-package org.example;
-
 import java.util.*;
 
 public class CellIndexMethod {
@@ -37,8 +35,6 @@ public class CellIndexMethod {
 
         // Build the grid: each cell holds the list of particles in it
         List<List<Integer>> grid = buildGrid(particles);
-
-        double cellSize = L / M;
 
         // Iterate over each cell
         for (int row = 0; row < M; row++) {

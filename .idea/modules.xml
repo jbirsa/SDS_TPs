@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/REPO_NUEVO.iml" filepath="$PROJECT_DIR$/.idea/REPO_NUEVO.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/sds-tps.iml" filepath="$PROJECT_DIR$/.idea/sds-tps.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tp1-visual/tp1-visual.iml" filepath="$PROJECT_DIR$/tp1-visual/tp1-visual.iml" />
     </modules>
   </component>
 </project>

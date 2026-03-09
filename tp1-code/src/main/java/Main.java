@@ -1,5 +1,3 @@
-package org.example;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -8,15 +6,17 @@ import java.util.*;
 public class Main {
 
     // Default parameters
+    private static final int    N_DEFAULT     = 500;
     private static final double L_DEFAULT     = 20.0;
+    private static final int    M_DEFAULT     = -1;   // -1 = auto-compute optimal
     private static final double RC_DEFAULT    = 1.0;
     private static final double R_MIN         = 0.23;
     private static final double R_MAX         = 0.26;
-    private static final int    N_DEFAULT     = 100;
-    private static final int    M_DEFAULT     = -1;   // -1 = auto-compute optimal
     private static final boolean PBC_DEFAULT  = false;
     private static final int    HIGHLIGHT_ID  = 5;
-    private static final int    RUNS_DEFAULT  = 1;
+    private static final int    RUNS_DEFAULT  = 10;
+
+    private static final String OUTPUT_PATH = "/Users/josefinagonzalezcornet/Desktop/1c2026/sds/SDS_TPs/tp1-output/";
 
     public static void main(String[] args) throws IOException {
 
@@ -25,13 +25,14 @@ public class Main {
         //    Usage: java Main [N] [L] [M] [rc] [pbc] [highlightId] [seed] [runs]
         //    Example: java Main 200 20 5 1.0 false 0 42 5
         // ----------------------------------------------------------------
-        int     N           = argInt   (args, 0, N_DEFAULT);
+        int     N           = argInt(args, 0, N_DEFAULT);
         double  L           = argDouble(args, 1, L_DEFAULT);
-        int     M           = argInt   (args, 2, M_DEFAULT);
+        int     M           = argInt(args, 2, M_DEFAULT);
         double  rc          = argDouble(args, 3, RC_DEFAULT);
-        boolean pbc         = argBool  (args, 4, PBC_DEFAULT);
-        int     highlightId = argInt   (args, 5, HIGHLIGHT_ID);
-        long    seed        = argLong  (args, 6, -1L);
+        boolean pbc         = argBool(args, 4, PBC_DEFAULT);
+        int     highlightId = argInt(args, 5, HIGHLIGHT_ID);
+        long    seed        = argLong(args, 6, -1L);
+        int runs = Math.max(1, argInt(args, 7, RUNS_DEFAULT));
 
         // Auto-compute optimal M if not provided
         if (M <= 0) {
@@ -43,7 +44,6 @@ public class Main {
                 N, L, M, rc, pbc, highlightId);
         System.out.println("--------------------------------------------------");
 
-        int runs = Math.max(1, argInt(args, 7, RUNS_DEFAULT));
         System.out.printf("Simulations per configuration: %d%n", runs);
 
         CellIndexMethod cim = new CellIndexMethod(L, M, rc, pbc);
@@ -60,7 +60,7 @@ public class Main {
             long runSeed = (seed >= 0) ? seed + run : -1;
             List<Particle> particles;
             try {
-                particles = Generator.generate(N, L, R_MIN, R_MAX, runSeed);
+                particles = Generator.generate(N, L, R_MIN, R_MAX, runSeed > 0);
             } catch (IllegalStateException e) {
                 System.err.println("ERROR generating particles: " + e.getMessage());
                 return;
@@ -97,7 +97,6 @@ public class Main {
         System.out.printf("Average CIM time:        %.4f ms%n", avgCim);
         System.out.printf("Average BruteForce time: %.4f ms%n", avgBf);
         System.out.println("--------------------------------------------------");
-        System.out.println("s");
 
         if (lastParticles != null && lastNeighbors != null) {
             if (highlightId >= 0 && highlightId < N) {
@@ -105,10 +104,10 @@ public class Main {
                 System.out.printf("Neighbors of particle %d (last run): %s%n", highlightId, highlighted);
             }
 
-            writeStaticFile("static.txt",  lastParticles, L);
-            writeDynamicFile("dynamic.txt", lastParticles);
-            writeNeighborsFile("neighbors.txt", lastNeighbors);
-            writeOvitoFile("ovito.xyz", lastParticles, lastNeighbors, highlightId);
+            writeStaticFile(OUTPUT_PATH + "static.txt",  lastParticles, L);
+            writeDynamicFile(OUTPUT_PATH + "dynamic.txt", lastParticles);
+            writeNeighborsFile(OUTPUT_PATH + "neighbors.txt", lastNeighbors);
+            writeOvitoFile(OUTPUT_PATH + "ovito.xyz", lastParticles, lastNeighbors, highlightId);
 
             System.out.println("Output files written (last run): static.txt, dynamic.txt, neighbors.txt, ovito.xyz");
         }
@@ -124,7 +123,7 @@ public class Main {
             pw.println(particles.size());
             pw.println(L);
             for (Particle p : particles) {
-                pw.printf(Locale.US, "%.4f 0%n", p.getRadius());
+                pw.printf(Locale.US, "%.4f %n", p.getRadius());
             }
         }
     }

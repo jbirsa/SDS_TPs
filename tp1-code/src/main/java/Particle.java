@@ -1,5 +1,3 @@
-package org.example;
-
 public class Particle {
     private final int id;
     private final double x;
