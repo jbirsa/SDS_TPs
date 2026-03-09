@@ -6,6 +6,10 @@
 # $ git config --global mergetool.keepBackup false
 *.orig
 
+.idea/
+*.iml
+tp1-output/
+
 # Created by git when using merge tools for conflicts
 *.BACKUP.*
 *.BASE.*
