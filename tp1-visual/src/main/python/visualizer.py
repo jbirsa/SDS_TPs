@@ -11,7 +11,7 @@ except ModuleNotFoundError as exc:
     )
 
 if "MPLBACKEND" not in os.environ:
-    for backend in ("TkAgg", "Qt5Agg", "Agg"):
+    for backend in ("MacOSX","TkAgg", "Qt5Agg", "Agg"):
         try:
             matplotlib.use(backend)
             break

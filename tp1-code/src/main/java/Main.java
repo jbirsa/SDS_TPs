@@ -9,13 +9,13 @@ import java.util.*;
 public class Main {
 
     // Default parameters
-    private static final int    N_DEFAULT     = 100;
+    private static final int    N_DEFAULT     = 800;
     private static final double L_DEFAULT     = 20.0;
     private static final int    M_DEFAULT     = -1;   // -1 = auto-compute optimal
     private static final double RC_DEFAULT    = 1.0;
     private static final double R_MIN         = 0.23;
     private static final double R_MAX         = 0.26;
-    private static final boolean PBC_DEFAULT  = true;
+    private static final boolean PBC_DEFAULT  = false;
     private static final int    HIGHLIGHT_ID  = 5;
     private static final int    RUNS_DEFAULT  = 10;
 
