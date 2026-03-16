@@ -9,6 +9,7 @@
 .idea/
 *.iml
 tp1-output/
+tp2-output/
 
 # Created by git when using merge tools for conflicts
 *.BACKUP.*

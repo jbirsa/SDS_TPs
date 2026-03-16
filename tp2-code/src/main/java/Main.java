@@ -12,6 +12,7 @@ public class Main {
         double eta = 0.1; // intensidad del ruido
         int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
         int steps = 5000; // cantidad de pasos a simular
+        int outputEvery = 1; // guardar cada cuantos pasos
 
         if (args.length >= 1) {
             leaderType = Integer.parseInt(args[0]);
@@ -21,6 +22,14 @@ public class Main {
             eta = Double.parseDouble(args[1]);
         }
 
+        if (args.length >= 3) {
+            steps = Integer.parseInt(args[2]);
+        }
+
+        if (args.length >= 4) {
+            outputEvery = Integer.parseInt(args[3]);
+        }
+
         int M = CellIndexMethod.optimalM(L, rc, 0);
         List<Particle> particles = Generator.generate(N, L, v, leaderType);
         CellIndexMethod cim = new CellIndexMethod(L, M, rc);
@@ -28,7 +37,10 @@ public class Main {
 
         for (int i = 0; i < steps; i++) {
             model.step();
-            OutputWriter.writeFrame(i, model.getParticles());
+            if (i % outputEvery == 0) {
+                OutputWriter.writeFrame(i, model.getParticles());
+            }
         }
+        OutputWriter.close();
     }
 }

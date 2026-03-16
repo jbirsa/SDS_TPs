@@ -1,17 +1,44 @@
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Locale;
 
 public class OutputWriter {
 
-    public static void writeFrame(int step, List<Particle> particles) {
-        try (PrintWriter pw = new PrintWriter(new FileWriter("/Users/josefinagonzalezcornet/Desktop/1c2026/sds/SDS_TPs/tp2-output/output.xyz", true))) {
+    // escribe en REPO_NUEVO/tp2-output/output.xyz sin importar desde dónde se ejecute
+    private static final Path OUTPUT_PATH = resolveOutputPath();
+    private static boolean initialized = false;
+    private static BufferedWriter writer = null;
 
-            pw.println(particles.size());
-            pw.println("step " + step);
+    private static void ensureOutputFile() throws IOException {
+        if (!initialized) {
+            Files.createDirectories(OUTPUT_PATH.getParent());
+            Files.deleteIfExists(OUTPUT_PATH);
+            writer = new BufferedWriter(new FileWriter(OUTPUT_PATH.toFile(), true));
+            initialized = true;
+        }
+    }
+
+    public static void writeFrame(int step, List<Particle> particles) {
+        try {
+            ensureOutputFile();
+        } catch (IOException e) {
+            throw new RuntimeException("No se pudo preparar el archivo de salida: " + OUTPUT_PATH, e);
+        }
+
+        try {
+
+            writer.write(Integer.toString(particles.size()));
+            writer.newLine();
+            writer.write("step " + step);
+            writer.newLine();
 
             for (Particle p : particles) {
-                pw.printf(
-                        "%d %.5f %.5f %.5f %.5f %f %d %d\n",
+                writer.write(String.format(Locale.US,
+                        "%d %.5f %.5f %.5f %.5f %f %d %d%n",
                         p.getId(),
                         p.getX(),
                         p.getY(),
@@ -20,11 +47,40 @@ public class OutputWriter {
                         0.2,
                         (p instanceof Leader) ? 0 : 1,
                         (p instanceof Leader) ? 1 : 0
-                );
+                ));
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void close() {
+        if (writer != null) {
+            try {
+                writer.flush();
+                writer.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private static Path resolveOutputPath() {
+        Path cwd = Path.of("").toAbsolutePath();
+
+        // Caso 1: se ejecuta desde tp2-code
+        if (cwd.getFileName().toString().equals("tp2-code")) {
+            return cwd.getParent().resolve("tp2-output").resolve("output.xyz");
+        }
+        // Caso 2: se ejecuta desde REPO_NUEVO
+        if (cwd.getFileName().toString().equals("REPO_NUEVO")) {
+            return cwd.resolve("tp2-output").resolve("output.xyz");
+        }
+        // Caso 3: se ejecuta desde SDS (un nivel arriba)
+        if (cwd.getFileName().toString().equals("SDS")) {
+            return cwd.resolve("REPO_NUEVO").resolve("tp2-output").resolve("output.xyz");
+        }
+        // Fallback: crear en cwd/tp2-output
+        return cwd.resolve("tp2-output").resolve("output.xyz");
     }
 }
