@@ -3,70 +3,32 @@ import java.util.*;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-
-        boolean leader = true;
-        int leaderType = 2;
-
-        double eta = 0.2;
-
-        int steps = 5000;
+        double L = 10; // lado del cuadrado
+        double rho = 4; // densidad
+        int N = (int)(rho * L * L); // cantidad de particulas
+        double v = 0.03; // velocidad de las particulas
+        double rc = 1.0; // radio de interacción
+        double dt = 1.0; // paso de tiempo
+        double eta = 0.1; // intensidad del ruido
+        int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
+        int steps = 5000; // cantidad de pasos a simular
 
         if (args.length >= 1) {
-            leader = Boolean.parseBoolean(args[0]);
+            leaderType = Integer.parseInt(args[0]);
         }
 
         if (args.length >= 2) {
-            leaderType = Integer.parseInt(args[1]);
+            eta = Double.parseDouble(args[1]);
         }
-
-        if (args.length >= 3) {
-            eta = Double.parseDouble(args[2]);
-        }
-
-        // parámetros Vicsek
-
-        double L = 10;
-        double rho = 1;
-        int N = (int)(rho * L * L);
-        double v = 0.03;
-        double rc = 1.0;
-        double dt = 1.0;
 
         int M = CellIndexMethod.optimalM(L, rc, 0);
-
-        List<Particle> particles =
-                Generator.generate(
-                        N,
-                        L,
-                        v,
-                        leader,
-                        leaderType
-                );
-
-        CellIndexMethod cim =
-                new CellIndexMethod(
-                        L,
-                        M,
-                        rc
-                );
-
-        VicsekModel model =
-                new VicsekModel(
-                        particles,
-                        cim,
-                        eta,
-                        dt,
-                        L
-                );
+        List<Particle> particles = Generator.generate(N, L, v, leaderType);
+        CellIndexMethod cim = new CellIndexMethod(L, M, rc);
+        VicsekModel model = new VicsekModel(particles, cim, eta, dt, L);
 
         for (int i = 0; i < steps; i++) {
-
             model.step();
-
-            OutputWriter.writeFrame(
-                    i,
-                    model.getParticles()
-            );
+            OutputWriter.writeFrame(i, model.getParticles());
         }
     }
 }
