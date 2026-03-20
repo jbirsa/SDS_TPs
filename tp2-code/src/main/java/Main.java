@@ -15,7 +15,7 @@ public class Main {
         int steps = 5000; // cantidad de pasos a simular
         int outputEvery = 1; // guardar cada cuantos pasos
 
-        int leaderType = 1; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
+        int leaderType = 0; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
 
         if (args.length >= 1) {
             leaderType = Integer.parseInt(args[0]);
@@ -55,7 +55,10 @@ public class Main {
                 .average()
                 .orElse(0.0);
 
-        int runId = args[4] != null ? Integer.parseInt(args[4]) : 0; // ID de corrida para análisis
+        int runId = 0;
+        if (args.length >= 5) {
+            runId = Integer.parseInt(args[4]);
+        }
 
         double mean = vaPromedioEstacionario;
 
