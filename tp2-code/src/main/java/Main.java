@@ -1,4 +1,6 @@
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -8,11 +10,12 @@ public class Main {
         int N = (int)(rho * L * L); // cantidad de particulas
         double v = 0.03; // velocidad de las particulas
         double rc = 1.0; // radio de interacción
-        double dt = 1.0; // paso de tiempo
+        double dt = 1.0; // paso temporal
         double eta = 0.1; // intensidad del ruido
-        int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
         int steps = 5000; // cantidad de pasos a simular
         int outputEvery = 1; // guardar cada cuantos pasos
+
+        int leaderType = 1; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
 
         if (args.length >= 1) {
             leaderType = Integer.parseInt(args[0]);
@@ -31,16 +34,53 @@ public class Main {
         }
 
         int M = CellIndexMethod.optimalM(L, rc, 0);
-        List<Particle> particles = Generator.generate(N, L, v, leaderType);
+        long seed = System.nanoTime();
+        List<Particle> particles = Generator.generate(N, L, v, leaderType, seed);
         CellIndexMethod cim = new CellIndexMethod(L, M, rc);
         VicsekModel model = new VicsekModel(particles, cim, eta, dt, L);
 
+        List<Double> vaValues = new ArrayList<>();
         for (int i = 0; i < steps; i++) {
             model.step();
+            if (i > (int)(0.4 * steps)) { // Solo considerar pasos estacionarios
+                vaValues.add(calculatePolarization(model.getParticles()));
+            }
             if (i % outputEvery == 0) {
                 OutputWriter.writeFrame(i, model.getParticles());
             }
         }
+
+        double vaPromedioEstacionario = vaValues.stream()
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0.0);
+
+        int runId = args[4] != null ? Integer.parseInt(args[4]) : 0; // ID de corrida para análisis
+
+        double mean = vaPromedioEstacionario;
+
+        double variance = vaValues.stream()
+                .mapToDouble(vVal -> Math.pow(vVal - mean, 2))
+                .average()
+                .orElse(0.0);
+
+        double std = Math.sqrt(variance);
+
+        OutputWriter.writeAnalysisData(eta, runId, vaPromedioEstacionario, std);
+
         OutputWriter.close();
+    }
+
+    private static double calculatePolarization(List<Particle> particles) {
+        double sumVx = 0;
+        double sumVy = 0;
+
+        for (Particle p : particles) {
+            sumVx += p.getVx();
+            sumVy += p.getVy();
+        }
+
+        double magnitude = Math.sqrt(sumVx * sumVx + sumVy * sumVy);
+        return magnitude / particles.size();
     }
 }

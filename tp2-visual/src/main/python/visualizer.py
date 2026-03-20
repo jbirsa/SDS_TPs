@@ -467,13 +467,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--stride",
         type=int,
-        default=8,
+        default=5,
         help="Use one frame every N from output.xyz (default: 8).",
     )
     parser.add_argument(
         "--max-frames",
         type=int,
-        default=180,
+        default=5000,
         help="Maximum number of frames in GIF (default: 180).",
     )
     parser.add_argument(
