@@ -58,10 +58,9 @@ def procesar_y_graficar(archivo_csv):
         for eta in etas_unicos:
             # Filtrar por eta y limitar a las corridas pedidas
             df_eta = df_escenario[df_escenario['eta'] == eta].head(CANTIDAD_CORRIDAS)
-            
+
             va_promedio = df_eta['va_mean'].mean()
-            varianza_promedio = df_eta['std'].mean()
-            va_desvio = np.sqrt(varianza_promedio) # Desvío a partir de varianza
+            va_desvio = df_eta['va_mean'].std() / np.sqrt(len(df_eta)) # Error estándar del promedio (barras de error)
             
             resultados.append({
                 'eta': eta,

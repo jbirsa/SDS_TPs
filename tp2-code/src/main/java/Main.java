@@ -60,16 +60,7 @@ public class Main {
             runId = Integer.parseInt(args[4]);
         }
 
-        double mean = vaPromedioEstacionario;
-
-        double variance = vaValues.stream()
-                .mapToDouble(vVal -> Math.pow(vVal - mean, 2))
-                .average()
-                .orElse(0.0);
-
-        double std = Math.sqrt(variance);
-
-        OutputWriter.writeAnalysisData(eta, runId, vaPromedioEstacionario, std);
+        OutputWriter.writeAnalysisData(eta, runId, vaPromedioEstacionario);
 
         OutputWriter.close();
     }

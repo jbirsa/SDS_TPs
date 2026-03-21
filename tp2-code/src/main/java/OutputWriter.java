@@ -56,7 +56,7 @@ public class OutputWriter {
         }
     }
 
-    public static void writeAnalysisData(double eta, int runId, double vaPromedioEstacionario, double std) {
+    public static void writeAnalysisData(double eta, int runId, double vaPromedioEstacionario) {
         try {
             Files.createDirectories(ANALYSIS_PATH.getParent());
 
@@ -66,17 +66,16 @@ public class OutputWriter {
 
                 // Header solo la primera vez
                 if (writeHeader) {
-                    analysisWriter.write("eta;run;va_mean;std\n");
+                    analysisWriter.write("eta;run;va_mean\n");
                 }
 
                 // Datos
                 analysisWriter.write(String.format(
                         Locale.US,
-                        "%.8f;%d;%.8f;%.8f%n",
+                        "%.8f;%d;%.8f%n",
                         eta,
                         runId,
-                        vaPromedioEstacionario,
-                        std
+                        vaPromedioEstacionario
                 ));
             }
 
