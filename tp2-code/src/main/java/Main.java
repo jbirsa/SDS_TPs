@@ -1,21 +1,19 @@
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
         double L = 10; // lado del cuadrado
-        double rho = 4; // densidad
+        double rho = 8; // densidad
         int N = (int)(rho * L * L); // cantidad de particulas
         double v = 0.03; // velocidad de las particulas
         double rc = 1.0; // radio de interacción
         double dt = 1.0; // paso temporal
-        double eta = 0.1; // intensidad del ruido
-        int steps = 5000; // cantidad de pasos a simular
+        double eta = 3; // intensidad del ruido
+        int steps = 1000; // cantidad de pasos a simular
         int outputEvery = 1; // guardar cada cuantos pasos
 
-        int leaderType = 0; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
+        int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
 
         if (args.length >= 1) {
             leaderType = Integer.parseInt(args[0]);
