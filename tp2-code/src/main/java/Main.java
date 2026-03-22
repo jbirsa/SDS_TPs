@@ -4,12 +4,12 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         double L = 10; // lado del cuadrado
-        double rho = 8; // densidad
+        double rho = 4; // densidad
         int N = (int)(rho * L * L); // cantidad de particulas
         double v = 0.03; // velocidad de las particulas
         double rc = 1.0; // radio de interacción
         double dt = 1.0; // paso temporal
-        double eta = 3; // intensidad del ruido
+        double eta = 0.1; // intensidad del ruido
         int steps = 1000; // cantidad de pasos a simular
         int outputEvery = 1; // guardar cada cuantos pasos
 
