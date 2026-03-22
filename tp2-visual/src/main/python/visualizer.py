@@ -3,6 +3,7 @@
 # - GIF combinado (movimiento + polarización)
 # - NO requiere argumentos obligatorios (usa defaults como antes)
 # - Mantiene PNG final de polarización
+# - Modo comparación: --compare RUTA ETA (repetible) superpone curvas con leyenda η
 
 from __future__ import annotations
 
@@ -188,26 +189,93 @@ def save_polarization_png(frames: list[Frame], path: Path):
     plt.close()
 
 
+def _eta_legend(eta: float) -> str:
+    return f"η = {eta:g}"
+
+
+def save_polarization_overlay(
+    series: list[tuple[Path, float]],
+    stride: int,
+    max_frames: int | None,
+    path: Path,
+) -> None:
+    plt.figure(figsize=(9, 5))
+    cmap = plt.get_cmap("tab10")
+    for i, (xyz, eta) in enumerate(series):
+        frames = load_frames(xyz, stride, max_frames)
+        if not frames:
+            continue
+        steps = np.array([f.step for f in frames])
+        va = np.array([compute_polarization(f) for f in frames])
+        color = cmap(i % 10)
+        plt.plot(steps, va, color=color, label=_eta_legend(eta), linewidth=1.5)
+
+    plt.xlabel("tiempo (steps)")
+    plt.ylabel("polarización (va)")
+    plt.title("Polarización vs tiempo (comparación)")
+    plt.ylim(0.0, 1.05)
+    plt.margins(x=0, y=0)
+    plt.legend(loc="best", fontsize=9)
+    plt.grid(True, alpha=0.3)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
+
+
 def main():
     repo_root = Path(__file__).resolve().parents[4]
 
     parser = argparse.ArgumentParser(description="Visualizador TP2")
     parser.add_argument("--input", type=Path, default=repo_root / "tp2-output" / "output.xyz")
     parser.add_argument("--gif", type=Path, default=repo_root / "tp2-visual" / "tp2_combined.gif")
-    parser.add_argument("--png", type=Path, default=repo_root / "tp2-visual" / "polarization_final.png")
+    parser.add_argument(
+        "--png",
+        type=Path,
+        default=None,
+        help="PNG de polarización (uno o comparación según modo)",
+    )
+    parser.add_argument(
+        "--compare",
+        nargs=2,
+        metavar=("PATH", "ETA"),
+        action="append",
+        default=None,
+        help="Trayectoria .xyz y η para la leyenda; repetir para superponer varias curvas",
+    )
     parser.add_argument("--fps", type=int, default=15)
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--max-frames", type=int, default=500)
 
     args = parser.parse_args()
 
+    if args.compare:
+        series: list[tuple[Path, float]] = []
+        for path_str, eta_str in args.compare:
+            series.append((Path(path_str), float(eta_str)))
+        out_png = (
+            args.png
+            if args.png is not None
+            else repo_root / "tp2-output" / "polarization_comparada.png"
+        )
+        save_polarization_overlay(series, args.stride, args.max_frames, out_png)
+        desc = ", ".join(f"{p} (eta={e:g})" for p, e in series)
+        print(f"Comparacion ({len(series)} series): {desc}")
+        print(f"PNG comparacion generado: {out_png}")
+        return
+
+    out_png = (
+        args.png
+        if args.png is not None
+        else repo_root / "tp2-visual" / "polarization_final.png"
+    )
     frames = load_frames(args.input, args.stride, args.max_frames)
 
     make_combined_animation(frames, args.fps, args.gif, 120)
-    save_polarization_png(frames, args.png)
+    save_polarization_png(frames, out_png)
 
     print(f"GIF generado: {args.gif}")
-    print(f"PNG generado: {args.png}")
+    print(f"PNG generado: {out_png}")
 
 
 if __name__ == "__main__":
