@@ -20,7 +20,7 @@ public class Main {
         double stationaryTolerance = DEFAULT_STATIONARY_TOLERANCE;
         double stationaryStartFraction = DEFAULT_STATIONARY_START_FRACTION;
 
-        int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
+        int leaderType = 1; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
 
         if (args.length >= 1) {
             leaderType = Integer.parseInt(args[0]);
@@ -74,7 +74,7 @@ public class Main {
             polarizationByStep.add(vaCurrent);
 
             if (i % outputEvery == 0) {
-                OutputWriter.writeFrame(i, model.getParticles());
+                OutputWriter.writeFrame(i, model.getParticles(), L, rho, v, rc, eta, steps, leaderType);
             }
         }
 

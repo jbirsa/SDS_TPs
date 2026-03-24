@@ -57,12 +57,22 @@ def parse_step(comment_line: str) -> int:
 
 
 def parse_frame_block(lines: list[str], n_particles: int) -> np.ndarray:
-    raw = "".join(lines)
-    if "," in raw:
-        raw = raw.replace(",", ".")
-    arr = np.fromstring(raw, sep=" ")
-    cols = arr.size // n_particles
-    return arr.reshape((n_particles, cols))
+    data = []
+    for line in lines:
+        parts = line.strip().split()
+        # esperamos exactamente 6 columnas
+        if len(parts) != 6:
+            continue
+        try:
+            row = [float(p) for p in parts]
+            data.append(row)
+        except ValueError:
+            continue
+
+    if len(data) != n_particles:
+        raise ValueError(f"Se esperaban {n_particles} partículas, pero se leyeron {len(data)}")
+
+    return np.array(data)
 
 
 def load_frames(path: Path, stride: int, max_frames: int | None) -> list[Frame]:
@@ -70,20 +80,47 @@ def load_frames(path: Path, stride: int, max_frames: int | None) -> list[Frame]:
     frame_idx = 0
 
     with path.open("r", encoding="utf-8") as f:
+
+        # 🔴 leer header UNA sola vez
+        header = f.readline()
+        n_particles = int(header.split()[0])
+
         while True:
-            count_line = f.readline()
-            if not count_line:
+            line = f.readline()
+            if not line:
                 break
 
-            n_particles = int(count_line.strip())
-            comment = f.readline()
-            particle_lines = [f.readline() for _ in range(n_particles)]
+            line = line.strip()
+
+            # buscamos inicio de frame
+            if not line.startswith("step"):
+                continue
+
+            comment = line  # "step X"
+
+            # leer partículas
+            particle_lines = []
+            while len(particle_lines) < n_particles:
+                l = f.readline()
+                if not l:
+                    break
+
+                l = l.strip()
+
+                if l == "" or l.startswith("step"):
+                    continue
+
+                particle_lines.append(l)
+
+            if len(particle_lines) != n_particles:
+                break  # frame incompleto → cortar
 
             if frame_idx % stride == 0:
                 data = parse_frame_block(particle_lines, n_particles)
+
                 x, y = data[:, 1], data[:, 2]
                 vx, vy = data[:, 3], data[:, 4]
-                leader_mask = data[:, 7] > 0.5 if data.shape[1] >= 8 else np.zeros(n_particles, bool)
+                leader_mask = data[:, 5] > 0.5
 
                 frames.append(Frame(parse_step(comment), x, y, vx, vy, leader_mask))
 
@@ -93,7 +130,6 @@ def load_frames(path: Path, stride: int, max_frames: int | None) -> list[Frame]:
             frame_idx += 1
 
     return frames
-
 
 def compute_polarization(frame: Frame) -> float:
     sum_vx = float(np.sum(frame.vx))
@@ -239,6 +275,7 @@ def mark_stationary_steps_on_xaxis(ax: plt.Axes, step_values: list[float]) -> No
             )
             tick_label.set_color(STATIONARY_COLOR)
             tick_label.set_fontweight("bold")
+            tick_label.set_y(-0.04)
             tick_label.set_y(STATIONARY_TICK_BASE_Y - (step_idx * STATIONARY_TICK_ROW_STEP))
             tick_label.set_va("top")
 
@@ -430,8 +467,8 @@ def make_combined_animation(frames: list[Frame], fps: int, gif_path: Path, dpi: 
     )
 
     ax_va.set_xlabel("tiempo (steps)")
-    ax_va.set_ylabel("polarizacion (va)")
-    ax_va.set_title("Polarizacion vs tiempo")
+    ax_va.set_ylabel("polarización (va)")
+    ax_va.set_title("Polarización vs tiempo")
     if len(steps) == 1:
         ax_va.set_xlim(float(steps[0]) - 1.0, float(steps[0]) + 1.0)
     else:
@@ -512,7 +549,7 @@ def make_combined_animation(frames: list[Frame], fps: int, gif_path: Path, dpi: 
 
         line.set_data(steps[: i + 1], va[: i + 1])
         point.set_offsets(np.array([[steps[i], va[i]]]))
-        label.set_text(f"step = {int(steps[i])}\\nva = {va[i]:.4f}")
+        label.set_text(f"step: {int(steps[i])} | polarización: {va[i]:.4f}")
 
         if (
             stationary_span is not None
@@ -550,8 +587,8 @@ def make_polarization_animation(frames: list[Frame], fps: int, gif_path: Path, d
     fig, ax = plt.subplots(figsize=(8, 5))
     fig.subplots_adjust(top=0.87, bottom=0.25)
     ax.set_xlabel("tiempo (steps)")
-    ax.set_ylabel("polarizacion (va)")
-    ax.set_title("Polarizacion vs tiempo")
+    ax.set_ylabel("polarización (va)")
+    ax.set_title("Polarización vs tiempo")
 
     if len(steps) == 1:
         ax.set_xlim(float(steps[0]) - 1.0, float(steps[0]) + 1.0)
@@ -615,7 +652,7 @@ def make_polarization_animation(frames: list[Frame], fps: int, gif_path: Path, d
     def update(i):
         line.set_data(steps[: i + 1], va[: i + 1])
         point.set_offsets(np.array([[steps[i], va[i]]]))
-        label.set_text(f"step = {int(steps[i])}\\nva = {va[i]:.4f}")
+        label.set_text(f"step: {int(steps[i])} | polarización: {va[i]:.4f}")
 
         artists = [line, point, label]
         if (
@@ -647,8 +684,8 @@ def save_polarization_png(frames: list[Frame], path: Path):
     fig.subplots_adjust(top=0.9, bottom=0.25)
     ax.plot(steps, va, color="#0a58ca", linewidth=2.0)
     ax.set_xlabel("tiempo (steps)")
-    ax.set_ylabel("polarizacion (va)")
-    ax.set_title("Polarizacion vs tiempo")
+    ax.set_ylabel("polarización (va)")
+    ax.set_title("Polarización vs tiempo")
     ax.set_xlim(float(np.min(steps)), float(np.max(steps)))
     ax.set_ylim(0.0, 1.05)
     ax.grid(True, alpha=0.3)
@@ -971,19 +1008,19 @@ def main():
         "--polarization-gif",
         type=Path,
         default=repo_root / "tp2-visual" / "graphs" / "polarization_time.gif",
-        help="GIF de polarizacion vs tiempo.",
+        help="GIF de polarización vs tiempo.",
     )
     parser.add_argument(
         "--combined-gif",
         type=Path,
         default=repo_root / "tp2-visual" / "graphs" / "combined.gif",
-        help="GIF combinado de particulas y polarizacion-tiempo.",
+        help="GIF combinado de particulas y polarización-tiempo.",
     )
     parser.add_argument(
         "--png",
         type=Path,
         default=repo_root / "tp2-visual" / "graphs" / "polarization_time.png",
-        help="PNG de polarizacion (uno o comparacion segun modo)",
+        help="PNG de polarización (uno o comparacion segun modo)",
     )
     parser.add_argument(
         "--compare",
@@ -1014,11 +1051,12 @@ def main():
         default=ANALYSIS_STATIONARY_START_FRACTION,
         help="Fallback al porcentaje de la simulacion si no hay ventana estable.",
     )
+    parser.add_argument("--max-frames", type=int, default=2000)
     parser.add_argument("--no-particles-gif", action="store_true", help="No generar GIF de particulas")
     parser.add_argument(
         "--no-polarization-gif",
         action="store_true",
-        help="No generar GIF de polarizacion-tiempo",
+        help="No generar GIF de polarización-tiempo",
     )
     parser.add_argument("--no-combined-gif", action="store_true", help="No generar GIF combinado")
     parser.add_argument(
@@ -1102,10 +1140,10 @@ def main():
     if not args.no_particles_gif:
         print(f"GIF particulas generado: {args.gif}")
     if not args.no_polarization_gif:
-        print(f"GIF polarizacion-tiempo generado: {args.polarization_gif}")
+        print(f"GIF polarización-tiempo generado: {args.polarization_gif}")
     if not args.no_combined_gif:
         print(f"GIF combinado generado: {args.combined_gif}")
-    print(f"PNG polarizacion-tiempo generado: {out_png}")
+    print(f"PNG polarización-tiempo generado: {out_png}")
 
 
 if __name__ == "__main__":
