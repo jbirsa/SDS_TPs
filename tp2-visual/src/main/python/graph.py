@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from pathlib import Path
 
 # --- CONSTANTES ---
 CANTIDAD_CORRIDAS = 10
@@ -28,14 +29,23 @@ def truncar_y_formatear(media, desvio):
     return formato.format(media_redondeada, err_redondeado)
 
 
-def procesar_y_graficar(archivo_csv):
+def procesar_y_graficar(archivo_csv: Path, output_dir: Path):
+    output_dir.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(archivo_csv, sep=';')
 
-    nombres_escenarios = ['Sin líder', 'Líder dirección fija', 'Líder circular']
+    nombres_base = ['Sin líder', 'Líder dirección fija', 'Líder circular']
     cortes = [0] + df.index[df['eta'].diff() < 0].tolist() + [len(df)]
 
-    if len(cortes) != len(nombres_escenarios) + 1:
-        raise ValueError("Cantidad de escenarios incorrecta")
+    cantidad_bloques = len(cortes) - 1
+    if cantidad_bloques <= 0:
+        raise ValueError("No se detectaron bloques de escenarios")
+
+    if cantidad_bloques <= len(nombres_base):
+        nombres_escenarios = nombres_base[:cantidad_bloques]
+    else:
+        nombres_escenarios = nombres_base + [
+            f"Escenario {i + 1}" for i in range(len(nombres_base), cantidad_bloques)
+        ]
 
     resultados_por_escenario = []
 
@@ -47,9 +57,13 @@ def procesar_y_graficar(archivo_csv):
         print(f"\n--- {nombres_escenarios[i].upper()} ---")
         for eta in etas_unicos:
             df_eta = df_escenario[df_escenario['eta'] == eta].head(CANTIDAD_CORRIDAS)
+            if df_eta.empty:
+                continue
 
             va_promedio = df_eta['va_mean'].mean()
             va_desvio = df_eta['va_mean'].std() / np.sqrt(len(df_eta))
+            if np.isnan(va_desvio):
+                va_desvio = 0.0
 
             resultados.append({
                 'eta': eta,
@@ -72,45 +86,35 @@ def procesar_y_graficar(archivo_csv):
         vas = [r['va_promedio'] for r in resultados]
         errores = [r['va_desvio'] for r in resultados]
 
-        plt.errorbar(etas, vas, yerr=errores, fmt=f'{marcadores[i]}-', capsize=4, markersize=3,
-                     color=colores[i], label=nombres_escenarios[i])
+        plt.errorbar(
+            etas,
+            vas,
+            yerr=errores,
+            fmt=f'{marcadores[i % len(marcadores)]}-',
+            capsize=4,
+            markersize=3,
+            color=colores[i % len(colores)],
+            label=nombres_escenarios[i],
+        )
 
     plt.xlabel(r'Ruido, $\eta$')
     plt.ylabel(r'Polarización, $v_a$')
-    plt.title('Polarización en función del ruido para los 3 escenarios')
+    plt.title('Polarización en función del ruido')
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.legend()
     plt.tight_layout()
-    plt.savefig('comparativa_polarizacion.pdf')
-    plt.show()
+    comparativa_path = output_dir / "polarization_noise.png"
+    plt.savefig(comparativa_path)
+    plt.close()
 
-    # --- GRÁFICOS SEPARADOS ---
-    for i, resultados in enumerate(resultados_por_escenario):
-        plt.figure(figsize=(8, 5))
-
-        etas = [r['eta'] for r in resultados]
-        vas = [r['va_promedio'] for r in resultados]
-        errores = [r['va_desvio'] for r in resultados]
-
-        plt.errorbar(etas, vas, yerr=errores, fmt=f'{marcadores[i]}-', capsize=4, markersize=3,
-                     color=colores[i])
-
-        plt.xlabel(r'Ruido, $\eta$')
-        plt.ylabel(r'Polarización, $v_a$')
-        plt.title(f'Polarización vs ruido - {nombres_escenarios[i]}')
-
-        plt.grid(True, linestyle='--', alpha=0.6)
-        plt.tight_layout()
-
-        nombre_archivo = nombres_escenarios[i].lower().replace(' ', '_') + ".pdf"
-        plt.savefig(nombre_archivo)
-        plt.show()
+    print(f"Grafico comparativo generado: {comparativa_path}")
 
 
-from pathlib import Path
-
-# Buscar analysis.csv relativo al repo como antes
 repo_root = Path(__file__).resolve().parents[4]
-analysis_path = repo_root / "tp2-output" / "analysis.csv"
+analysis_path = repo_root / "tp2-output" / "analysis_50_runs.csv"
+if not analysis_path.exists():
+    analysis_path = repo_root / "tp2-visual" / "src" / "main" / "python" / "analysis.csv"
 
-procesar_y_graficar(analysis_path)
+output_dir = repo_root / "tp2-visual" / "graphs"
+
+procesar_y_graficar(analysis_path, output_dir)

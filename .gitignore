@@ -405,4 +405,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+/graphs
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,java,git,intellij,linux,windows,python
