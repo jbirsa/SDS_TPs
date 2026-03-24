@@ -5,7 +5,8 @@ import math
 from pathlib import Path
 
 # --- CONSTANTES ---
-CANTIDAD_CORRIDAS = 10
+CANTIDAD_CORRIDAS = 50
+USAR_DESVIO_ESTANDAR = True
 
 def truncar_y_formatear(media, desvio):
     if desvio == 0 or math.isnan(desvio):
@@ -61,7 +62,10 @@ def procesar_y_graficar(archivo_csv: Path, output_dir: Path):
                 continue
 
             va_promedio = df_eta['va_mean'].mean()
-            va_desvio = df_eta['va_mean'].std() / np.sqrt(len(df_eta))
+            if USAR_DESVIO_ESTANDAR:
+                va_desvio = df_eta['va_mean'].std(ddof=1)
+            else:
+                va_desvio = df_eta['va_mean'].std(ddof=1) / np.sqrt(len(df_eta))
             if np.isnan(va_desvio):
                 va_desvio = 0.0
 

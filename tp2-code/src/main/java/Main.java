@@ -2,9 +2,9 @@ import java.util.*;
 
 public class Main {
 
-    private static final int STATIONARY_REPEAT_COUNT = 5;
-    private static final double STATIONARY_TOLERANCE = 1e-3;
-    private static final double STATIONARY_START_FRACTION = 0.4;
+    private static final int DEFAULT_STATIONARY_REPEAT_COUNT = 5;
+    private static final double DEFAULT_STATIONARY_TOLERANCE = 1e-3;
+    private static final double DEFAULT_STATIONARY_START_FRACTION = 0.4;
 
     public static void main(String[] args) throws Exception {
         double L = 10; // lado del cuadrado
@@ -13,9 +13,12 @@ public class Main {
         double v = 0.03; // velocidad de las particulas
         double rc = 1.0; // radio de interacción
         double dt = 1.0; // paso temporal
-        double eta = 3; // intensidad del ruido
+        double eta = 0.1; // intensidad del ruido
         int steps = 1000; // cantidad de pasos a simular
         int outputEvery = 1; // guardar cada cuantos pasos
+        int stationaryRepeatCount = DEFAULT_STATIONARY_REPEAT_COUNT;
+        double stationaryTolerance = DEFAULT_STATIONARY_TOLERANCE;
+        double stationaryStartFraction = DEFAULT_STATIONARY_START_FRACTION;
 
         int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
 
@@ -33,6 +36,28 @@ public class Main {
 
         if (args.length >= 4) {
             outputEvery = Integer.parseInt(args[3]);
+        }
+
+        if (args.length >= 6) {
+            stationaryRepeatCount = Integer.parseInt(args[5]);
+        }
+
+        if (args.length >= 7) {
+            stationaryTolerance = Double.parseDouble(args[6]);
+        }
+
+        if (args.length >= 8) {
+            stationaryStartFraction = Double.parseDouble(args[7]);
+        }
+
+        if (stationaryRepeatCount < 1) {
+            throw new IllegalArgumentException("stationaryRepeatCount debe ser >= 1");
+        }
+        if (stationaryTolerance < 0.0) {
+            throw new IllegalArgumentException("stationaryTolerance debe ser >= 0");
+        }
+        if (stationaryStartFraction < 0.0 || stationaryStartFraction > 1.0) {
+            throw new IllegalArgumentException("stationaryStartFraction debe estar entre 0 y 1");
         }
 
         int M = CellIndexMethod.optimalM(L, rc, 0);
@@ -53,7 +78,13 @@ public class Main {
             }
         }
 
-        int stationaryStartIndex = detectStationaryStartIndex(polarizationByStep, steps);
+        int stationaryStartIndex = detectStationaryStartIndex(
+                polarizationByStep,
+                steps,
+                stationaryRepeatCount,
+                stationaryTolerance,
+                stationaryStartFraction
+        );
         if (stationaryStartIndex < 0) {
             stationaryStartIndex = 0;
         }
@@ -91,16 +122,22 @@ public class Main {
         return magnitude / particles.size();
     }
 
-    private static int detectStationaryStartIndex(List<Double> values, int totalSteps) {
+    private static int detectStationaryStartIndex(
+            List<Double> values,
+            int totalSteps,
+            int repeatCount,
+            double tolerance,
+            double startFraction
+    ) {
         Integer startByWindow = detectStationaryStartIndexByWindow(
                 values,
-                STATIONARY_REPEAT_COUNT,
-                STATIONARY_TOLERANCE
+                repeatCount,
+                tolerance
         );
         if (startByWindow != null) {
             return startByWindow;
         }
-        return detectStationaryStartIndexByFraction(totalSteps, STATIONARY_START_FRACTION);
+        return detectStationaryStartIndexByFraction(totalSteps, startFraction);
     }
 
     private static Integer detectStationaryStartIndexByWindow(

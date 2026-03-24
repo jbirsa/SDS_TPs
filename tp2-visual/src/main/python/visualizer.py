@@ -1,7 +1,7 @@
 # VISUALIZADOR TP2
 # - GIF de particulas (particles.gif)
 # - GIF y PNG de polarizacion vs tiempo (polarization_time.gif/.png)
-# - Modo comparacion: --compare RUTA ETA (repetible)
+# - Modo comparacion: --compare RUTA ETA [TOL] (repetible)
 
 from __future__ import annotations
 
@@ -21,6 +21,8 @@ STATIONARY_TOLERANCE = 5e-2
 STATIONARY_COLOR = "#d62828"
 STATIONARY_SHADE_ALPHA = 0.16
 ANALYSIS_STATIONARY_START_FRACTION = 0.4
+STATIONARY_TICK_BASE_Y = -0.04
+STATIONARY_TICK_ROW_STEP = 0.04
 
 
 @dataclass
@@ -31,6 +33,22 @@ class Frame:
     vx: np.ndarray
     vy: np.ndarray
     leader_mask: np.ndarray
+
+
+@dataclass
+class PolarizationSeries:
+    label: str
+    steps: np.ndarray
+    va: np.ndarray
+    stationary_start_idx: int | None
+    stationary_confirm_idx: int | None
+
+
+@dataclass
+class CompareSpec:
+    path: Path
+    eta: float
+    tolerance: float | None
 
 
 def parse_step(comment_line: str) -> int:
@@ -85,28 +103,35 @@ def compute_polarization(frame: Frame) -> float:
 
 def detect_stationary_start_index_by_window(
     values: np.ndarray,
-    repeat_count: int = STATIONARY_REPEAT_COUNT,
-    tolerance: float = STATIONARY_TOLERANCE,
+    repeat_count: int | None = None,
+    tolerance: float | None = None,
 ) -> tuple[int | None, int | None]:
-    if repeat_count <= 0 or values.size == 0:
+    repeat_count_value: int = STATIONARY_REPEAT_COUNT if repeat_count is None else repeat_count
+    tolerance_value: float = STATIONARY_TOLERANCE if tolerance is None else tolerance
+
+    if repeat_count_value <= 0 or values.size == 0:
         return None, None
-    if repeat_count == 1:
+    if repeat_count_value == 1:
         return 0, 0
-    if values.size < repeat_count:
+    if values.size < repeat_count_value:
         return None, None
 
-    for start in range(0, values.size - repeat_count + 1):
-        window = values[start : start + repeat_count]
-        if float(np.max(window) - np.min(window)) <= tolerance:
-            return start, start + repeat_count - 1
+    for start in range(0, values.size - repeat_count_value + 1):
+        window = values[start : start + repeat_count_value]
+        if float(np.max(window) - np.min(window)) <= tolerance_value:
+            return start, start + repeat_count_value - 1
 
     return None, None
 
 
 def detect_stationary_start_index_like_analysis(
     steps: np.ndarray,
-    start_fraction: float = ANALYSIS_STATIONARY_START_FRACTION,
+    start_fraction: float | None = None,
 ) -> tuple[int | None, int | None]:
+    start_fraction_value: float = (
+        ANALYSIS_STATIONARY_START_FRACTION if start_fraction is None else start_fraction
+    )
+
     if steps.size == 0:
         return None, None
 
@@ -120,7 +145,7 @@ def detect_stationary_start_index_like_analysis(
     sample_step = max(sample_step, 1)
 
     estimated_total_steps = max_step + sample_step
-    threshold = int(start_fraction * estimated_total_steps)
+    threshold = int(start_fraction_value * estimated_total_steps)
 
     candidates = np.where(steps > threshold)[0]
     if candidates.size == 0:
@@ -133,30 +158,72 @@ def detect_stationary_start_index_like_analysis(
 def detect_stationary_start_index(
     steps: np.ndarray,
     values: np.ndarray,
-    repeat_count: int = STATIONARY_REPEAT_COUNT,
-    tolerance: float = STATIONARY_TOLERANCE,
-    analysis_start_fraction: float = ANALYSIS_STATIONARY_START_FRACTION,
+    repeat_count: int | None = None,
+    tolerance: float | None = None,
+    analysis_start_fraction: float | None = None,
 ) -> tuple[int | None, int | None]:
-    start_idx, confirm_idx = detect_stationary_start_index_by_window(values, repeat_count, tolerance)
+    repeat_count_value: int = STATIONARY_REPEAT_COUNT if repeat_count is None else repeat_count
+    tolerance_value: float = STATIONARY_TOLERANCE if tolerance is None else tolerance
+    analysis_start_fraction_value: float = (
+        ANALYSIS_STATIONARY_START_FRACTION
+        if analysis_start_fraction is None
+        else analysis_start_fraction
+    )
+
+    start_idx, confirm_idx = detect_stationary_start_index_by_window(
+        values,
+        repeat_count_value,
+        tolerance_value,
+    )
     if start_idx is not None:
         return start_idx, confirm_idx
 
-    return detect_stationary_start_index_like_analysis(steps, analysis_start_fraction)
+    return detect_stationary_start_index_like_analysis(steps, analysis_start_fraction_value)
 
 
-def mark_stationary_step_on_xaxis(ax: plt.Axes, step_value: float) -> None:
-    ticks = np.asarray(ax.get_xticks(), dtype=float)
-    if ticks.size == 0:
-        ticks = np.array([step_value], dtype=float)
-    elif not np.any(np.isclose(ticks, step_value, atol=1e-12, rtol=0.0)):
-        ticks = np.sort(np.append(ticks, step_value))
+def build_polarization_series(
+    frames: list[Frame],
+    label: str,
+    repeat_count: int | None = None,
+    tolerance: float | None = None,
+    analysis_start_fraction: float | None = None,
+) -> PolarizationSeries:
+    steps = np.array([f.step for f in frames], dtype=float)
+    va = np.array([compute_polarization(f) for f in frames], dtype=float)
+    stationary_start_idx, stationary_confirm_idx = detect_stationary_start_index(
+        steps,
+        va,
+        repeat_count=repeat_count,
+        tolerance=tolerance,
+        analysis_start_fraction=analysis_start_fraction,
+    )
+    return PolarizationSeries(
+        label=label,
+        steps=steps,
+        va=va,
+        stationary_start_idx=stationary_start_idx,
+        stationary_confirm_idx=stationary_confirm_idx,
+    )
+
+
+def mark_stationary_steps_on_xaxis(ax: plt.Axes, step_values: list[float]) -> None:
+    if not step_values:
+        return
+
+    unique_steps = sorted(set(float(v) for v in step_values))
+    current_ticks = np.asarray(ax.get_xticks(), dtype=float)
+    if current_ticks.size == 0:
+        ticks = np.array(unique_steps, dtype=float)
+    else:
+        ticks = np.sort(np.unique(np.concatenate((current_ticks, np.array(unique_steps, dtype=float)))))
 
     ax.set_xticks(ticks)
 
     labels: list[str] = []
     for tick in ticks:
-        if np.isclose(tick, step_value, atol=1e-12, rtol=0.0):
-            labels.append(f"{int(round(step_value))}\n(estado est.)")
+        is_stationary_tick = any(np.isclose(tick, v, atol=1e-12, rtol=0.0) for v in unique_steps)
+        if is_stationary_tick:
+            labels.append(f"{int(round(tick))}")
         elif float(tick).is_integer():
             labels.append(str(int(tick)))
         else:
@@ -164,11 +231,20 @@ def mark_stationary_step_on_xaxis(ax: plt.Axes, step_value: float) -> None:
     ax.set_xticklabels(labels)
 
     for tick, tick_label in zip(ticks, ax.get_xticklabels()):
-        if np.isclose(tick, step_value, atol=1e-12, rtol=0.0):
+        is_stationary_tick = any(np.isclose(tick, v, atol=1e-12, rtol=0.0) for v in unique_steps)
+        if is_stationary_tick:
+            step_idx = min(
+                range(len(unique_steps)),
+                key=lambda idx: abs(unique_steps[idx] - tick),
+            )
             tick_label.set_color(STATIONARY_COLOR)
             tick_label.set_fontweight("bold")
-            tick_label.set_y(-0.08)
+            tick_label.set_y(STATIONARY_TICK_BASE_Y - (step_idx * STATIONARY_TICK_ROW_STEP))
             tick_label.set_va("top")
+
+
+def mark_stationary_step_on_xaxis(ax: plt.Axes, step_value: float) -> None:
+    mark_stationary_steps_on_xaxis(ax, [step_value])
 
 
 def infer_box_size(frames: list[Frame]) -> float:
@@ -618,37 +694,269 @@ def _eta_legend(eta: float) -> str:
     return f"η = {eta:g}"
 
 
+def load_polarization_series(
+    series: list[CompareSpec],
+    stride: int,
+    max_frames: int | None,
+ ) -> list[PolarizationSeries]:
+    loaded: list[PolarizationSeries] = []
+    for spec in series:
+        frames = load_frames(spec.path, stride, max_frames)
+        if not frames:
+            continue
+        loaded.append(
+            build_polarization_series(
+                frames,
+                _eta_legend(spec.eta),
+                tolerance=spec.tolerance,
+            )
+        )
+    return loaded
+
+
+def make_polarization_overlay_animation(
+    series_data: list[PolarizationSeries],
+    fps: int,
+    gif_path: Path,
+    dpi: int,
+) -> None:
+    if not series_data:
+        return
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    fig.subplots_adjust(top=0.9, bottom=0.25)
+    ax.set_xlabel("tiempo (steps)")
+    ax.set_ylabel("polarizacion (va)")
+    ax.set_title("Polarizacion vs tiempo")
+
+    x_min = min(float(np.min(series.steps)) for series in series_data)
+    x_max = max(float(np.max(series.steps)) for series in series_data)
+    if x_min == x_max:
+        x_min -= 1.0
+        x_max += 1.0
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(0.0, 1.05)
+    ax.grid(True, alpha=0.3)
+
+    stationary_steps: list[float] = []
+    for series in series_data:
+        if series.stationary_start_idx is None:
+            continue
+        stationary_step = float(series.steps[series.stationary_start_idx])
+        if x_min <= stationary_step <= x_max:
+            stationary_steps.append(stationary_step)
+    mark_stationary_steps_on_xaxis(ax, stationary_steps)
+
+    global_stationary_span = None
+    if stationary_steps:
+        global_stationary_span = ax.axvspan(
+            x_min,
+            max(stationary_steps),
+            color=STATIONARY_COLOR,
+            alpha=STATIONARY_SHADE_ALPHA,
+            zorder=0,
+        )
+        global_stationary_span.set_visible(False)
+
+    stationary_artists: list[tuple[object, object, int] | None] = []
+    for series in series_data:
+        if series.stationary_start_idx is None:
+            stationary_artists.append(None)
+            continue
+        stationary_step = float(series.steps[series.stationary_start_idx])
+        stationary_va = float(series.va[series.stationary_start_idx])
+        if not (x_min <= stationary_step <= x_max):
+            stationary_artists.append(None)
+            continue
+
+        stationary_line = ax.axvline(
+            stationary_step,
+            color=STATIONARY_COLOR,
+            linewidth=2.0,
+            alpha=0.95,
+            zorder=4,
+        )
+        stationary_point = ax.scatter(
+            [stationary_step],
+            [stationary_va],
+            s=68,
+            c=STATIONARY_COLOR,
+            edgecolors="#1b1b1b",
+            linewidths=0.6,
+            zorder=5,
+        )
+
+        stationary_line.set_visible(False)
+        stationary_point.set_visible(False)
+
+        confirm_idx = series.stationary_confirm_idx if series.stationary_confirm_idx is not None else 0
+        stationary_artists.append((stationary_line, stationary_point, int(confirm_idx)))
+
+    cmap = plt.get_cmap("tab10")
+    lines: list = []
+    points: list = []
+    for i, series in enumerate(series_data):
+        color = cmap(i % 10)
+        line, = ax.plot([], [], color=color, linewidth=2.0, label=series.label)
+        point = ax.scatter([], [], s=38, c=[color], edgecolors="#1b1b1b", linewidths=0.4, zorder=4)
+        lines.append(line)
+        points.append(point)
+
+    if len(series_data) > 1:
+        ax.legend(loc="upper right", fontsize=9)
+
+    label = ax.text(
+        0.0,
+        1.02,
+        "",
+        transform=ax.transAxes,
+        va="bottom",
+        ha="left",
+        fontsize=9,
+        clip_on=False,
+        bbox={"boxstyle": "round,pad=0.2", "facecolor": "#f5f5f5", "edgecolor": "#bbbbbb"},
+    )
+
+    max_len = max(int(series.steps.size) for series in series_data)
+
+    def update(frame_idx: int):
+        artists: list = [label]
+        any_stationary_visible = False
+        if global_stationary_span is not None:
+            artists.append(global_stationary_span)
+
+        label_lines: list[str] = []
+
+        for i, series in enumerate(series_data):
+            if series.steps.size == 0:
+                continue
+
+            end_idx = min(frame_idx, int(series.steps.size) - 1)
+            lines[i].set_data(series.steps[: end_idx + 1], series.va[: end_idx + 1])
+            points[i].set_offsets(np.array([[series.steps[end_idx], series.va[end_idx]]]))
+            label_lines.append(
+                f"{series.label}: step={int(series.steps[end_idx])} va={series.va[end_idx]:.4f}"
+            )
+            artists.extend([lines[i], points[i]])
+
+            stationary_info = stationary_artists[i]
+            if stationary_info is not None:
+                stationary_line, stationary_point, confirm_idx = stationary_info
+                visible = frame_idx >= confirm_idx
+                any_stationary_visible = any_stationary_visible or visible
+                stationary_line.set_visible(visible)
+                stationary_point.set_visible(visible)
+                artists.extend([stationary_line, stationary_point])
+
+        if global_stationary_span is not None:
+            global_stationary_span.set_visible(any_stationary_visible)
+
+        label.set_text("\n".join(label_lines))
+        return tuple(artists)
+
+    anim = animation.FuncAnimation(fig, update, frames=max_len, interval=1000 / fps)
+
+    gif_path.parent.mkdir(parents=True, exist_ok=True)
+    anim.save(gif_path, writer=animation.PillowWriter(fps=fps), dpi=dpi)
+    plt.close(fig)
+
+
+def save_polarization_overlay_series(series_data: list[PolarizationSeries], path: Path) -> None:
+    if not series_data:
+        return
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    fig.subplots_adjust(top=0.9, bottom=0.25)
+
+    cmap = plt.get_cmap("tab10")
+    x_min = min(float(np.min(series.steps)) for series in series_data)
+    x_max = max(float(np.max(series.steps)) for series in series_data)
+    if x_min == x_max:
+        x_min -= 1.0
+        x_max += 1.0
+
+    ax.set_xlabel("tiempo (steps)")
+    ax.set_ylabel("polarizacion (va)")
+    ax.set_title("Polarizacion vs tiempo")
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(0.0, 1.05)
+    ax.margins(x=0, y=0)
+    ax.grid(True, alpha=0.3)
+
+    stationary_steps: list[float] = []
+
+    for i, series in enumerate(series_data):
+        color = cmap(i % 10)
+        ax.plot(series.steps, series.va, color=color, linewidth=2.0, label=series.label)
+
+        if series.stationary_start_idx is None:
+            continue
+        stationary_step = float(series.steps[series.stationary_start_idx])
+        stationary_va = float(series.va[series.stationary_start_idx])
+        if not (x_min <= stationary_step <= x_max):
+            continue
+
+        stationary_steps.append(stationary_step)
+        ax.axvline(
+            stationary_step,
+            color=STATIONARY_COLOR,
+            linewidth=2.0,
+            alpha=0.95,
+            zorder=4,
+        )
+        ax.scatter(
+            [stationary_step],
+            [stationary_va],
+            s=68,
+            c=STATIONARY_COLOR,
+            edgecolors="#1b1b1b",
+            linewidths=0.6,
+            zorder=5,
+        )
+
+    if stationary_steps:
+        ax.axvspan(
+            x_min,
+            max(stationary_steps),
+            color=STATIONARY_COLOR,
+            alpha=STATIONARY_SHADE_ALPHA,
+            zorder=0,
+        )
+
+    mark_stationary_steps_on_xaxis(ax, stationary_steps)
+
+    if len(series_data) > 1:
+        ax.legend(loc="best", fontsize=9)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path)
+    plt.close(fig)
+
+
 def save_polarization_overlay(
-    series: list[tuple[Path, float]],
+    series: list[tuple[Path, float] | CompareSpec],
     stride: int,
     max_frames: int | None,
     path: Path,
 ) -> None:
-    plt.figure(figsize=(9, 5))
-    cmap = plt.get_cmap("tab10")
-    for i, (xyz, eta) in enumerate(series):
-        frames = load_frames(xyz, stride, max_frames)
-        if not frames:
-            continue
-        steps = np.array([f.step for f in frames])
-        va = np.array([compute_polarization(f) for f in frames])
-        color = cmap(i % 10)
-        plt.plot(steps, va, color=color, label=_eta_legend(eta), linewidth=1.5)
+    normalized: list[CompareSpec] = []
+    for item in series:
+        if isinstance(item, CompareSpec):
+            normalized.append(item)
+        else:
+            xyz, eta = item
+            normalized.append(CompareSpec(xyz, eta, None))
 
-    plt.xlabel("tiempo (steps)")
-    plt.ylabel("polarización (va)")
-    plt.title("Polarización vs tiempo (comparación)")
-    plt.ylim(0.0, 1.05)
-    plt.margins(x=0, y=0)
-    plt.legend(loc="best", fontsize=9)
-    plt.grid(True, alpha=0.3)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    plt.tight_layout()
-    plt.savefig(path)
-    plt.close()
+    loaded_series = load_polarization_series(normalized, stride, max_frames)
+    save_polarization_overlay_series(loaded_series, path)
 
 
 def main():
+    global STATIONARY_REPEAT_COUNT
+    global STATIONARY_TOLERANCE
+    global ANALYSIS_STATIONARY_START_FRACTION
+
     repo_root = Path(__file__).resolve().parents[4]
 
     parser = argparse.ArgumentParser(description="Visualizador TP2")
@@ -679,15 +987,33 @@ def main():
     )
     parser.add_argument(
         "--compare",
-        nargs=2,
-        metavar=("PATH", "ETA"),
+        nargs="+",
+        metavar="VALUE",
         action="append",
         default=None,
-        help="Trayectoria .xyz y η para la leyenda; repetir para superponer varias curvas",
+        help="Serie en formato: PATH ETA [TOL]. Repetir para superponer varias curvas.",
     )
     parser.add_argument("--fps", type=int, default=15)
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--max-frames", type=int, default=500)
+    parser.add_argument(
+        "--stationary-repeat-count",
+        type=int,
+        default=STATIONARY_REPEAT_COUNT,
+        help="Cantidad de valores consecutivos para detectar estacionario.",
+    )
+    parser.add_argument(
+        "--stationary-tolerance",
+        type=float,
+        default=STATIONARY_TOLERANCE,
+        help="Tolerancia (error) para considerar valores similares.",
+    )
+    parser.add_argument(
+        "--stationary-start-fraction",
+        type=float,
+        default=ANALYSIS_STATIONARY_START_FRACTION,
+        help="Fallback al porcentaje de la simulacion si no hay ventana estable.",
+    )
     parser.add_argument("--no-particles-gif", action="store_true", help="No generar GIF de particulas")
     parser.add_argument(
         "--no-polarization-gif",
@@ -703,19 +1029,56 @@ def main():
 
     args = parser.parse_args()
 
+    if args.stationary_repeat_count <= 0:
+        raise SystemExit("--stationary-repeat-count debe ser >= 1")
+    if args.stationary_tolerance < 0:
+        raise SystemExit("--stationary-tolerance debe ser >= 0")
+    if not (0.0 <= args.stationary_start_fraction <= 1.0):
+        raise SystemExit("--stationary-start-fraction debe estar entre 0 y 1")
+
+    STATIONARY_REPEAT_COUNT = args.stationary_repeat_count
+    STATIONARY_TOLERANCE = args.stationary_tolerance
+    ANALYSIS_STATIONARY_START_FRACTION = args.stationary_start_fraction
+
     if args.compare:
-        series: list[tuple[Path, float]] = []
-        for path_str, eta_str in args.compare:
-            series.append((Path(path_str), float(eta_str)))
-        out_png = (
-            args.png
-            if args.png is not None
-            else repo_root / "tp2-visual" / "graphs" / "polarization_compare.png"
-        )
-        save_polarization_overlay(series, args.stride, args.max_frames, out_png)
-        desc = ", ".join(f"{p} (eta={e:g})" for p, e in series)
+        if args.png_only:
+            args.no_polarization_gif = True
+
+        series: list[CompareSpec] = []
+        for compare_entry in args.compare:
+            if len(compare_entry) not in (2, 3):
+                raise SystemExit("Cada --compare debe tener: PATH ETA [TOL]")
+
+            path_str = compare_entry[0]
+            eta_str = compare_entry[1]
+            tol_value: float | None = None
+            if len(compare_entry) == 3:
+                tol_value = float(compare_entry[2])
+                if tol_value < 0:
+                    raise SystemExit("La tolerancia por serie en --compare debe ser >= 0")
+
+            series.append(CompareSpec(Path(path_str), float(eta_str), tol_value))
+
+        loaded_series = load_polarization_series(series, args.stride, args.max_frames)
+        if not loaded_series:
+            raise SystemExit("No se cargaron corridas validas en --compare")
+
+        out_png = args.png
+        if not args.no_polarization_gif:
+            make_polarization_overlay_animation(loaded_series, args.fps, args.polarization_gif, 120)
+        save_polarization_overlay_series(loaded_series, out_png)
+
+        desc_items: list[str] = []
+        for spec in series:
+            if spec.tolerance is None:
+                desc_items.append(f"{spec.path} (eta={spec.eta:g})")
+            else:
+                desc_items.append(f"{spec.path} (eta={spec.eta:g}, tol={spec.tolerance:g})")
+        desc = ", ".join(desc_items)
         print(f"Comparacion ({len(series)} series): {desc}")
-        print(f"PNG comparacion generado: {out_png}")
+        if not args.no_polarization_gif:
+            print(f"GIF polarizacion-tiempo generado: {args.polarization_gif}")
+        print(f"PNG polarizacion-tiempo generado: {out_png}")
         return
 
     out_png = args.png
