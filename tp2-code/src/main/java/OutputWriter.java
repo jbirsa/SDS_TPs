@@ -19,34 +19,38 @@ public class OutputWriter {
             Files.createDirectories(OUTPUT_PATH.getParent());
             Files.deleteIfExists(OUTPUT_PATH);
             writer = new BufferedWriter(new FileWriter(OUTPUT_PATH.toFile(), true));
-            initialized = true;
         }
     }
 
-    public static void writeFrame(int step, List<Particle> particles) {
+    public static void writeFrame(int step, List<Particle> particles,
+                                  double L, double rho, double v, double rc, double eta, int steps, int leaderType) {
         try {
             ensureOutputFile();
+            if (!initialized) {
+                writer.write(String.format(Locale.US,
+                        "%d %.5f %.5f %.5f %.5f %.5f %d %d%n",
+                        particles.size(), L, rho, v, rc, eta, steps, leaderType
+                ));
+                writer.newLine();
+                initialized = true;
+            }
         } catch (IOException e) {
             throw new RuntimeException("No se pudo preparar el archivo de salida: " + OUTPUT_PATH, e);
         }
 
         try {
 
-            writer.write(Integer.toString(particles.size()));
-            writer.newLine();
             writer.write("step " + step);
             writer.newLine();
 
             for (Particle p : particles) {
                 writer.write(String.format(Locale.US,
-                        "%d %.5f %.5f %.5f %.5f %f %d %d%n",
+                        "%d %.5f %.5f %.5f %.5f %d%n",
                         p.getId(),
                         p.getX(),
                         p.getY(),
                         p.getVx(),
                         p.getVy(),
-                        0.2,
-                        (p instanceof Leader) ? 0 : 1,
                         (p instanceof Leader) ? 1 : 0
                 ));
             }

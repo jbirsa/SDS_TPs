@@ -33,12 +33,22 @@ def parse_step(comment_line: str) -> int:
 
 
 def parse_frame_block(lines: list[str], n_particles: int) -> np.ndarray:
-    raw = "".join(lines)
-    if "," in raw:
-        raw = raw.replace(",", ".")
-    arr = np.fromstring(raw, sep=" ")
-    cols = arr.size // n_particles
-    return arr.reshape((n_particles, cols))
+    data = []
+    for line in lines:
+        parts = line.strip().split()
+        # esperamos exactamente 6 columnas
+        if len(parts) != 6:
+            continue
+        try:
+            row = [float(p) for p in parts]
+            data.append(row)
+        except ValueError:
+            continue
+
+    if len(data) != n_particles:
+        raise ValueError(f"Se esperaban {n_particles} partículas, pero se leyeron {len(data)}")
+
+    return np.array(data)
 
 
 def load_frames(path: Path, stride: int, max_frames: int | None) -> list[Frame]:
@@ -46,20 +56,47 @@ def load_frames(path: Path, stride: int, max_frames: int | None) -> list[Frame]:
     frame_idx = 0
 
     with path.open("r", encoding="utf-8") as f:
+
+        # 🔴 leer header UNA sola vez
+        header = f.readline()
+        n_particles = int(header.split()[0])
+
         while True:
-            count_line = f.readline()
-            if not count_line:
+            line = f.readline()
+            if not line:
                 break
 
-            n_particles = int(count_line.strip())
-            comment = f.readline()
-            particle_lines = [f.readline() for _ in range(n_particles)]
+            line = line.strip()
+
+            # buscamos inicio de frame
+            if not line.startswith("step"):
+                continue
+
+            comment = line  # "step X"
+
+            # leer partículas
+            particle_lines = []
+            while len(particle_lines) < n_particles:
+                l = f.readline()
+                if not l:
+                    break
+
+                l = l.strip()
+
+                if l == "" or l.startswith("step"):
+                    continue
+
+                particle_lines.append(l)
+
+            if len(particle_lines) != n_particles:
+                break  # frame incompleto → cortar
 
             if frame_idx % stride == 0:
                 data = parse_frame_block(particle_lines, n_particles)
+
                 x, y = data[:, 1], data[:, 2]
                 vx, vy = data[:, 3], data[:, 4]
-                leader_mask = data[:, 7] > 0.5 if data.shape[1] >= 8 else np.zeros(n_particles, bool)
+                leader_mask = data[:, 5] > 0.5
 
                 frames.append(Frame(parse_step(comment), x, y, vx, vy, leader_mask))
 
@@ -69,7 +106,6 @@ def load_frames(path: Path, stride: int, max_frames: int | None) -> list[Frame]:
             frame_idx += 1
 
     return frames
-
 
 def compute_polarization(frame: Frame) -> float:
     sum_vx = float(np.sum(frame.vx))
@@ -197,7 +233,7 @@ def main():
     parser.add_argument("--png", type=Path, default=repo_root / "tp2-visual" / "polarization_final.png")
     parser.add_argument("--fps", type=int, default=15)
     parser.add_argument("--stride", type=int, default=5)
-    parser.add_argument("--max-frames", type=int, default=500)
+    parser.add_argument("--max-frames", type=int, default=2000)
 
     args = parser.parse_args()
 

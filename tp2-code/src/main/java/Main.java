@@ -13,7 +13,7 @@ public class Main {
         int steps = 1000; // cantidad de pasos a simular
         int outputEvery = 1; // guardar cada cuantos pasos
 
-        int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
+        int leaderType = 1; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
 
         if (args.length >= 1) {
             leaderType = Integer.parseInt(args[0]);
@@ -44,7 +44,7 @@ public class Main {
                 vaValues.add(calculatePolarization(model.getParticles()));
             }
             if (i % outputEvery == 0) {
-                OutputWriter.writeFrame(i, model.getParticles());
+                OutputWriter.writeFrame(i, model.getParticles(), L, rho, v, rc, eta, steps, leaderType);
             }
         }
 
