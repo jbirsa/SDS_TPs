@@ -1,6 +1,6 @@
 # VISUALIZADOR TP2
 # - GIF de particulas (particles.gif)
-# - GIF y PNG de polarizacion vs tiempo (polarization_time.gif/.png)
+# - GIF y PNG de polarización vs tiempo (polarization_time.gif/.png)
 # - Modo comparacion: --compare RUTA ETA (repetible)
 from __future__ import annotations
 
@@ -202,7 +202,7 @@ def mark_stationary_step_on_xaxis(ax: plt.Axes, step_value: float) -> None:
         if np.isclose(tick, step_value, atol=1e-12, rtol=0.0):
             tick_label.set_color(STATIONARY_COLOR)
             tick_label.set_fontweight("bold")
-            tick_label.set_y(-0.08)
+            tick_label.set_y(-0.04)
             tick_label.set_va("top")
 
 
@@ -389,8 +389,8 @@ def make_combined_animation(frames: list[Frame], fps: int, gif_path: Path, dpi: 
     )
 
     ax_va.set_xlabel("tiempo (steps)")
-    ax_va.set_ylabel("polarizacion (va)")
-    ax_va.set_title("Polarizacion vs tiempo")
+    ax_va.set_ylabel("polarización (va)")
+    ax_va.set_title("Polarización vs tiempo")
     if len(steps) == 1:
         ax_va.set_xlim(float(steps[0]) - 1.0, float(steps[0]) + 1.0)
     else:
@@ -471,7 +471,7 @@ def make_combined_animation(frames: list[Frame], fps: int, gif_path: Path, dpi: 
 
         line.set_data(steps[: i + 1], va[: i + 1])
         point.set_offsets(np.array([[steps[i], va[i]]]))
-        label.set_text(f"step = {int(steps[i])}\\nva = {va[i]:.4f}")
+        label.set_text(f"step: {int(steps[i])} | polarización: {va[i]:.4f}")
 
         if (
             stationary_span is not None
@@ -509,8 +509,8 @@ def make_polarization_animation(frames: list[Frame], fps: int, gif_path: Path, d
     fig, ax = plt.subplots(figsize=(8, 5))
     fig.subplots_adjust(top=0.87, bottom=0.25)
     ax.set_xlabel("tiempo (steps)")
-    ax.set_ylabel("polarizacion (va)")
-    ax.set_title("Polarizacion vs tiempo")
+    ax.set_ylabel("polarización (va)")
+    ax.set_title("Polarización vs tiempo")
 
     if len(steps) == 1:
         ax.set_xlim(float(steps[0]) - 1.0, float(steps[0]) + 1.0)
@@ -574,7 +574,7 @@ def make_polarization_animation(frames: list[Frame], fps: int, gif_path: Path, d
     def update(i):
         line.set_data(steps[: i + 1], va[: i + 1])
         point.set_offsets(np.array([[steps[i], va[i]]]))
-        label.set_text(f"step = {int(steps[i])}\\nva = {va[i]:.4f}")
+        label.set_text(f"step: {int(steps[i])} | polarización: {va[i]:.4f}")
 
         artists = [line, point, label]
         if (
@@ -606,8 +606,8 @@ def save_polarization_png(frames: list[Frame], path: Path):
     fig.subplots_adjust(top=0.9, bottom=0.25)
     ax.plot(steps, va, color="#0a58ca", linewidth=2.0)
     ax.set_xlabel("tiempo (steps)")
-    ax.set_ylabel("polarizacion (va)")
-    ax.set_title("Polarizacion vs tiempo")
+    ax.set_ylabel("polarización (va)")
+    ax.set_title("Polarización vs tiempo")
     ax.set_xlim(float(np.min(steps)), float(np.max(steps)))
     ax.set_ylim(0.0, 1.05)
     ax.grid(True, alpha=0.3)
@@ -698,19 +698,19 @@ def main():
         "--polarization-gif",
         type=Path,
         default=repo_root / "tp2-visual" / "graphs" / "polarization_time.gif",
-        help="GIF de polarizacion vs tiempo.",
+        help="GIF de polarización vs tiempo.",
     )
     parser.add_argument(
         "--combined-gif",
         type=Path,
         default=repo_root / "tp2-visual" / "graphs" / "combined.gif",
-        help="GIF combinado de particulas y polarizacion-tiempo.",
+        help="GIF combinado de particulas y polarización-tiempo.",
     )
     parser.add_argument(
         "--png",
         type=Path,
         default=repo_root / "tp2-visual" / "graphs" / "polarization_time.png",
-        help="PNG de polarizacion (uno o comparacion segun modo)",
+        help="PNG de polarización (uno o comparacion segun modo)",
     )
     parser.add_argument(
         "--compare",
@@ -727,7 +727,7 @@ def main():
     parser.add_argument(
         "--no-polarization-gif",
         action="store_true",
-        help="No generar GIF de polarizacion-tiempo",
+        help="No generar GIF de polarización-tiempo",
     )
     parser.add_argument("--no-combined-gif", action="store_true", help="No generar GIF combinado")
     parser.add_argument(
@@ -774,10 +774,10 @@ def main():
     if not args.no_particles_gif:
         print(f"GIF particulas generado: {args.gif}")
     if not args.no_polarization_gif:
-        print(f"GIF polarizacion-tiempo generado: {args.polarization_gif}")
+        print(f"GIF polarización-tiempo generado: {args.polarization_gif}")
     if not args.no_combined_gif:
         print(f"GIF combinado generado: {args.combined_gif}")
-    print(f"PNG polarizacion-tiempo generado: {out_png}")
+    print(f"PNG polarización-tiempo generado: {out_png}")
 
 
 if __name__ == "__main__":
