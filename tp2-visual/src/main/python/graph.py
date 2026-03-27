@@ -103,7 +103,6 @@ def procesar_y_graficar(archivo_csv: Path, output_dir: Path):
 
     plt.xlabel(r'Ruido, $\eta$')
     plt.ylabel(r'Polarización, $v_a$')
-    plt.title('Polarización en función del ruido')
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.legend()
     plt.tight_layout()

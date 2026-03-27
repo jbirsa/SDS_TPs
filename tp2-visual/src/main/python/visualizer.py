@@ -468,7 +468,6 @@ def make_combined_animation(frames: list[Frame], fps: int, gif_path: Path, dpi: 
 
     ax_va.set_xlabel("tiempo (steps)")
     ax_va.set_ylabel("polarización (va)")
-    ax_va.set_title("Polarización vs tiempo")
     if len(steps) == 1:
         ax_va.set_xlim(float(steps[0]) - 1.0, float(steps[0]) + 1.0)
     else:
@@ -588,7 +587,6 @@ def make_polarization_animation(frames: list[Frame], fps: int, gif_path: Path, d
     fig.subplots_adjust(top=0.87, bottom=0.25)
     ax.set_xlabel("tiempo (steps)")
     ax.set_ylabel("polarización (va)")
-    ax.set_title("Polarización vs tiempo")
 
     if len(steps) == 1:
         ax.set_xlim(float(steps[0]) - 1.0, float(steps[0]) + 1.0)
@@ -685,7 +683,6 @@ def save_polarization_png(frames: list[Frame], path: Path):
     ax.plot(steps, va, color="#0a58ca", linewidth=2.0)
     ax.set_xlabel("tiempo (steps)")
     ax.set_ylabel("polarización (va)")
-    ax.set_title("Polarización vs tiempo")
     ax.set_xlim(float(np.min(steps)), float(np.max(steps)))
     ax.set_ylim(0.0, 1.05)
     ax.grid(True, alpha=0.3)
@@ -764,7 +761,6 @@ def make_polarization_overlay_animation(
     fig.subplots_adjust(top=0.9, bottom=0.25)
     ax.set_xlabel("tiempo (steps)")
     ax.set_ylabel("polarizacion (va)")
-    ax.set_title("Polarizacion vs tiempo")
 
     x_min = min(float(np.min(series.steps)) for series in series_data)
     x_max = max(float(np.max(series.steps)) for series in series_data)
@@ -915,7 +911,6 @@ def save_polarization_overlay_series(series_data: list[PolarizationSeries], path
 
     ax.set_xlabel("tiempo (steps)")
     ax.set_ylabel("polarizacion (va)")
-    ax.set_title("Polarizacion vs tiempo")
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(0.0, 1.05)
     ax.margins(x=0, y=0)
@@ -1032,7 +1027,7 @@ def main():
     )
     parser.add_argument("--fps", type=int, default=15)
     parser.add_argument("--stride", type=int, default=5)
-    parser.add_argument("--max-frames", type=int, default=500)
+    parser.add_argument("--max-frames", type=int, default=1000)
     parser.add_argument(
         "--stationary-repeat-count",
         type=int,
@@ -1051,7 +1046,6 @@ def main():
         default=ANALYSIS_STATIONARY_START_FRACTION,
         help="Fallback al porcentaje de la simulacion si no hay ventana estable.",
     )
-    parser.add_argument("--max-frames", type=int, default=2000)
     parser.add_argument("--no-particles-gif", action="store_true", help="No generar GIF de particulas")
     parser.add_argument(
         "--no-polarization-gif",

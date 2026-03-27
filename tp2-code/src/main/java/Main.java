@@ -2,8 +2,8 @@ import java.util.*;
 
 public class Main {
 
-    private static final int DEFAULT_STATIONARY_REPEAT_COUNT = 5;
-    private static final double DEFAULT_STATIONARY_TOLERANCE = 1e-3;
+    private static final int DEFAULT_STATIONARY_REPEAT_COUNT = 20;
+    private static final double DEFAULT_STATIONARY_TOLERANCE = 1e-5;
     private static final double DEFAULT_STATIONARY_START_FRACTION = 0.4;
 
     public static void main(String[] args) throws Exception {
@@ -13,14 +13,14 @@ public class Main {
         double v = 0.03; // velocidad de las particulas
         double rc = 1.0; // radio de interacción
         double dt = 1.0; // paso temporal
-        double eta = 0.1; // intensidad del ruido
+        double eta = 0.5; // intensidad del ruido
         int steps = 1000; // cantidad de pasos a simular
         int outputEvery = 1; // guardar cada cuantos pasos
         int stationaryRepeatCount = DEFAULT_STATIONARY_REPEAT_COUNT;
         double stationaryTolerance = DEFAULT_STATIONARY_TOLERANCE;
         double stationaryStartFraction = DEFAULT_STATIONARY_START_FRACTION;
 
-        int leaderType = 1; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
+        int leaderType = 2; // tipo de líder (0 sin lider, 1 lider con direccion fija, 2 lider con direccion circular)
 
         if (args.length >= 1) {
             leaderType = Integer.parseInt(args[0]);
