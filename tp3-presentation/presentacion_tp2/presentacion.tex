@@ -1,0 +1,437 @@
+\documentclass{beamer}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\renewcommand\vec[1]{\ifstrequal{#1}{0}{\ensuremath{\mathbf{0}}}{\ensuremath{\boldsymbol{#1}}}}
+\setbeamertemplate{headline}{}
+
+
+\usetheme[compress]{Berlin}
+\setbeamertemplate{page number in head/foot}[framenumber]
+\captionsetup{justification=centering, font={scriptsize}, skip=0pt}
+
+\title[Autómatas Celulares]{Autómatas Celulares: Trabajo Práctico N°2}
+\subtitle{72.25 - Simulación de Sistemas}
+\author[J. Birsa, J. Gonzalez Cornet, F. Magri]{
+  Juan Pablo Birsa\inst{1} \and 
+  Josefina Gonzalez Cornet\inst{2} \and 
+  Federico José Magri\inst{3}
+}
+\institute[ITBA]{
+  \inst{1} jbirsa@itba.edu.ar (64500) \\
+  \inst{2} jgonzalezcornet@itba.edu.ar (64550) \\
+  \inst{3} fmagri@itba.edu.ar (64508) \\
+}
+\date{2026 1C | Grupo Nº5}
+% \titlegraphic{\includegraphics[height=1.2cm]{resources/itba.png}}
+
+\makeatletter
+\beamer@theme@subsectionfalse
+\makeatother
+
+\AtBeginSection[]{
+    \begin{frame}
+        \begin{beamercolorbox}[sep=8pt,center]{title}
+            \usebeamerfont{title}\insertsection
+        \end{beamercolorbox}
+    \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Introducción}
+\begin{frame}{Sistema Real}
+    Estudio de fenómenos colectivos presentes en la naturaleza.
+    \begin{itemize}
+        \item Bandadas de pájaros
+        \item Enjambres de insectos
+        \item Colonias de bacterias
+    \end{itemize}
+    \begin{figure}[htbp]
+        \centering
+%        \includegraphics[width=0.4\textwidth]{resources/bandada.jpg}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Fundamentos}
+    El modelo se basa principalmente en dos ecuaciones:
+    \begin{equation*}
+        x_i(t+1) = x_i(t) + v_i(t) \Delta t
+    \end{equation*}
+    \begin{equation*}
+        \theta(t+1) = \langle \theta(t) \rangle_r+ \Delta \theta
+    \end{equation*}
+    La dirección promedio se obtiene:
+    \begin{equation*}
+        \langle \theta(t) \rangle_r = \arctan \left( \frac{\langle \sin \theta(t) \rangle_r}{\langle \cos \theta(t) \rangle_r} \right)
+\end{equation*}
+\end{frame}
+
+
+% Sección 2
+\section{Implementación}
+\begin{frame}{Diagrama de la Arquitectura}
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=1.15\textwidth]{resources/diagrama-uml.png}
+    }
+\end{frame}
+
+\begin{frame}{Algoritmo Implementado}
+    \begin{algorithm}[H]
+    \small
+        \caption{Paso de simulación — Modelo de Vicsek}
+        \begin{algorithmic}[1]
+            \State Calcular vecinos $\mathcal{N}_i$ de cada partícula $i$ con $r_c$
+            \For{cada partícula $i \in \{1, \dots, N\}$}
+                \State $\theta_i^{\text{new}} \gets \arctan\!\left(\dfrac{\displaystyle\sum_{j \in \mathcal{N}_i \cup \{i\}} \sin\theta_j}{\displaystyle\sum_{j \in \mathcal{N}_i \cup \{i\}} \cos\theta_j}\right) + \eta\left(U - \tfrac{1}{2}\right)$
+            \EndFor
+            \For{cada partícula $i \in \{1, \dots, N\}$}
+                \State $\theta_i \gets \theta_i^{\text{new}}$
+                \State $\vec{x}_i \gets \vec{x}_i + \vec{v}_i \,\Delta t \pmod{L}$
+            \EndFor
+        \end{algorithmic}
+    \end{algorithm}
+    \vspace{0.2cm}
+    \footnotesize{$U \sim \mathcal{U}(0,1)$; condiciones de contorno periódicas}
+\end{frame}
+
+% Sección 3
+\section{Simulaciones}
+
+\begin{frame}{Simulaciones}
+    Parámetros de entrada fijos:
+    \begin{itemize}
+        \item $dt=1$ - Paso temporal
+        \item $r_c=1$ - Radio de Interacción
+        \item $v=0.03$ - Módulo de la Velocidad
+        \item $L=10$ - Longitud del Lado de la Celda
+    \end{itemize}
+    Parámetros de entrada variables:
+    \begin{itemize}
+        \item $\rho\in[2, 8]$ - Densidad de Partículas
+        \item $T\in[300, 2000]$ - Cantidad de Pasos
+        \item $\eta\in[0.1, 5]$ - Ruido
+        \item $N = \lfloor \rho \cdot L^2 \rfloor$ - Cantidad de Partículas
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Observable Definido}
+    Parámetro de Orden $v_a(t)$
+    \begin{equation*}
+        v_a = \frac{1}{Nv} \left|\sum_{i=1}^{N} \vec{v_i} \right|
+    \end{equation*}
+    \begin{itemize}
+        \item Orden: Tiende a uno.
+        \item Desorden: Tiende a cero.
+    \end{itemize}
+\end{frame}
+
+% Sección 4
+\section{Resultados}
+\begin{frame}{Escenario - sin partícula líder}
+    \begin{minipage}[t]{0.60\textwidth}
+        \begin{figure}[H!]
+            \caption*{\url{https://youtube.com/shorts/GTz2qQXesA8?feature=share}}
+        \end{figure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.30\textwidth}
+        \begin{block}{Animación}
+            \begin{itemize}
+                \item $\rho=4$
+                \item $T=1000$
+                \item $\eta=0.5$
+            \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Escenario - sin partícula líder}
+    \begin{minipage}[t]{0.60\textwidth}
+        \begin{figure}[H!]
+            \caption*{\url{https://youtube.com/shorts/2LXgmRyks-8?feature=share}}
+        \end{figure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.35\textwidth}
+        \begin{block}{Animación}
+            \begin{itemize}
+                \item $\rho=4$
+                \item $T=1000$
+                \item $\eta=5$
+            \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Escenario - sin partícula líder}
+    \centering
+    Evolución temporal del observable
+
+    \includegraphics[width=1\textwidth]{figuras/figura1.png}
+
+    \vspace{-0.5cm}
+    \begin{beamercolorbox}[sep=3pt,center]{block body}
+        \begin{minipage}[t]{0.45\textwidth}
+            \centering
+            \small{$\rho=4$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.45\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+\begin{frame}{Escenario - sin partícula líder}
+    \centering
+    Relación entre el ruido del sistema y el observable
+    \includegraphics[width=0.8\textwidth]{figuras/figura2.png}
+
+    \begin{beamercolorbox}[sep=2pt,center]{block body}
+        \begin{minipage}[t]{0.2\textwidth}
+            \centering
+            \small{$\rho=4$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.3\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+\begin{frame}{Escenario - partícula líder con dirección fija}
+    \begin{minipage}[t]{0.60\textwidth}
+        \begin{figure}[H!]
+            \caption*{\url{https://youtube.com/shorts/dTPi_UulAaU?feature=share}}
+        \end{figure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.30\textwidth}
+        \begin{block}{Animación}
+            \begin{itemize}
+                \item $\rho=4$
+                \item $T=1000$
+                \item $\eta=0.5$
+            \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Escenario - partícula lider con dirección fija}
+    \begin{minipage}[t]{0.60\textwidth}
+        \begin{figure}[H!]
+            \caption*{\url{https://youtube.com/shorts/x2LYCSsmBBU?feature=share}}
+        \end{figure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.35\textwidth}
+        \begin{block}{Animación}
+            \begin{itemize}
+                \item $\rho=4$
+                \item $T=1000$
+                \item $\eta=5$
+            \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Escenario - partícula líder con dirección fija}
+    \centering
+    Evolución temporal del observable
+
+    \includegraphics[width=1\textwidth]{figuras/figura3.png}
+
+    \vspace{-0.5cm}
+    \begin{beamercolorbox}[sep=3pt,center]{block body}
+        \begin{minipage}[t]{0.45\textwidth}
+            \centering
+            \small{$\rho=4$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.45\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+\begin{frame}{Escenario - partícula líder con dirección fija}
+    \centering
+    Relación entre el ruido del sistema y el observable
+    \includegraphics[width=0.8\textwidth]{figuras/figura4.png}
+
+    \begin{beamercolorbox}[sep=2pt,center]{block body}
+        \begin{minipage}[t]{0.2\textwidth}
+            \centering
+            \small{$\rho=4$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.3\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+\begin{frame}{Escenario - partícula líder con trayectoria circular}
+    \begin{minipage}[t]{0.60\textwidth}
+        \begin{figure}[H!]
+            \caption*{\url{https://youtube.com/shorts/Mne1MLGajeE?feature=share}}
+        \end{figure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.30\textwidth}
+        \begin{block}{Animación}
+            \begin{itemize}
+                \item $\rho=4$
+                \item $T=1000$
+                \item $\eta=0.5$
+            \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Escenario - partícula líder con trayectoria circular}
+    \begin{minipage}[t]{0.60\textwidth}
+        \begin{figure}[H!]
+            \caption*{\url{https://youtube.com/shorts/2IW7mya4HiA?feature=share}}
+        \end{figure}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.35\textwidth}
+        \begin{block}{Animación}
+            \begin{itemize}
+                \item $\rho=4$
+                \item $T=1000$
+                \item $\eta=5$
+            \end{itemize}
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Escenario - partícula líder con trayectoria circular}
+    \centering
+    Evolución temporal del observable
+
+    \includegraphics[width=1\textwidth]{figuras/figura5.png}
+
+    \vspace{-0.5cm}
+    \begin{beamercolorbox}[sep=3pt,center]{block body}
+        \begin{minipage}[t]{0.45\textwidth}
+            \centering
+            \small{$\rho=4$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.45\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+\begin{frame}{Escenario - partícula líder con trayectoria circular}
+    \centering
+    Relación entre el ruido del sistema y el observable
+    \includegraphics[width=0.8\textwidth]{figuras/figura6.png}
+
+    \begin{beamercolorbox}[sep=2pt,center]{block body}
+        \begin{minipage}[t]{0.2\textwidth}
+            \centering
+            \small{$\rho=4$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.3\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+\begin{frame}{Relación entre el ruido del sistema y el observable}
+    \centering
+    Comparativa entre los tres escenarios
+    \includegraphics[width=0.8\textwidth]{figuras/figura7.png}
+
+    \begin{beamercolorbox}[sep=2pt,center]{block body}
+        \begin{minipage}[t]{0.2\textwidth}
+            \centering
+            \small{$\rho=4$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.3\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+ 
+\begin{frame}{Influencia de la densidad}
+    \centering
+    Baja densidad
+
+    \begin{figure}[H!]
+    \caption*{\url{https://youtube.com/shorts/3ZIzBqNLXHg?feature=share}}
+
+    \caption*{\url{https://youtube.com/shorts/E_yQEQQtbZM?feature=share}}
+    \end{figure}
+
+    \begin{beamercolorbox}[sep=2pt,center]{block body}
+        \begin{minipage}[t]{0.2\textwidth}
+            \centering
+            \small{$\rho=2$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.3\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+\begin{frame}{Influencia de la densidad}
+    \centering
+    Alta densidad
+    \begin{figure}[H!]
+    \caption*{\url{https://youtube.com/shorts/tatwWGUWL3w?feature=share}}
+    \caption*{\url{https://youtube.com/shorts/NRTXNGWg--o?feature=share}}
+    \end{figure}
+
+    \begin{beamercolorbox}[sep=2pt,center]{block body}
+        \begin{minipage}[t]{0.2\textwidth}
+            \centering
+            \small{$\rho=8$}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[t]{0.3\textwidth}
+            \centering
+            \small{$T=1000$}
+        \end{minipage}
+    \end{beamercolorbox}
+\end{frame}
+
+% Sección 5
+\section{Conclusiones}
+\begin{frame}{Conclusiones}
+    \begin{itemize}
+        \item El parámetro de polarización $v_a$ decrece con $\eta$: el ruido destruye el orden colectivo.
+        \item El impacto del líder sobre la polarización global es limitado independientemente del ruido.
+        \item Una mayor densidad $\rho$ favorece el orden colectivo.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \begin{beamercolorbox}[sep=8pt,center]{title}
+        \usebeamerfont{title} Muchas gracias
+    \end{beamercolorbox}
+\end{frame}
+\end{document}

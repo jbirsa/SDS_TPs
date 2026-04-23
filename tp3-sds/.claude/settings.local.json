@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pdftotext:*)",
+      "Bash(python3 -c \"import fitz; doc = fitz.open\\('/Users/josefinagonzalezcornet/Desktop/tp3-sds/TP3_Enunciado.pdf'\\); [print\\(doc[i].get_text\\(\\)\\) for i in range\\(len\\(doc\\)\\)]\")",
+      "Bash(python3 -c \"import PyPDF2; r=PyPDF2.PdfReader\\('/Users/josefinagonzalezcornet/Desktop/tp3-sds/TP3_Enunciado.pdf'\\); [print\\(p.extract_text\\(\\)\\) for p in r.pages]\")",
+      "Bash(pip3 install:*)",
+      "Bash(javac -d out src/simulation/*.java)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(java -cp out simulation.Main)",
+      "Bash(wait)",
+      "Bash(echo \"EXIT:$?\")",
+      "Read(//private/tmp/**)",
+      "Bash(ls out_*.txt)",
+      "Bash(ls src/simulation/*.java)"
+    ]
+  }
+}
