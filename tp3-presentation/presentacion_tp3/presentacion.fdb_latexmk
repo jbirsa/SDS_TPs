@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1776990675.48321 "presentacion.tex" "presentacion.pdf" "presentacion" 1776990694.11441 0
+["pdflatex"] 1776990910.91234 "/home/juanpa/Documentos/SDS/REPO_NUEVO/tp3-presentation/presentacion_tp3/presentacion.tex" "presentacion.pdf" "presentacion" 1776990929.71812 0
   "../../tp3-visual/1_input-t2/0_sweep_A_SERPENTINA_L_vs_tiempo_FIXED.png" 1776968759 106591 64f84d5bbe455884169aeb96bb4c29aa ""
   "../../tp3-visual/1_input-t2/0_sweep_B_SERPENTINA_L_vs_tiempo_FIXED.png" 1776968759 143033 2c2f5a84d2562befe7881e05d760f118 ""
   "../../tp3-visual/1_input-t2/1_sweep_A_SERPENTINA_largo_fila_FIXED.png" 1776968759 43397 5d663d0345a6884eef0c405047655a39 ""
@@ -47,7 +47,7 @@
   "../../tp3-visual/3_input-k/6_sweep_B_k_SERPENTINA_permanencia_FIXED.png" 1776968760 54228 b8244facc8016d7ee018b1c7855f6010 ""
   "../../tp3-visual/3_input-k/W_vs_k_FIXED_AVB.png" 1776968760 68314 136c93ce838222f08bdf60adfa0c991b ""
   "../../tp3-visual/3_input-k/m_vs_k_FIXED_AVB.png" 1776968760 69594 7485c63d7ba681690fca16c02cc0ee3a ""
-  "../../tp3-visual/diagram/diagram.jpeg" 1776990031.68191 105054 5636d452382a0d6cc95c03b9d62d6571 ""
+  "../../tp3-visual/diagram/diagram.jpeg" 1776990740.18288 158111 16c42a7b38ec8f7685d14ac012053c97 ""
   "../../tp3-visual/graphs/heatmaps/heatmap_L_A_FIXED.png" 1776976134 38564 11942ca64c85546d654ec9220228bd25 ""
   "../../tp3-visual/graphs/heatmaps/heatmap_W_A_FIXED.png" 1776976134 40825 c662e13ae141087b21ce5d5755b88bde ""
   "../../tp3-visual/graphs/heatmaps/heatmap_m_B_FIXED.png" 1776976134 37501 e266e18973e2e03db418f6ab6bc13e7a ""
@@ -56,6 +56,7 @@
   "../../tp3-visual/screenshots/modB_free_t1_1_t2_3.5_k_3.png" 1776989369.40655 37146 dc2aac5149e75f801bf2e41842fa9b70 ""
   "../../tp3-visual/screenshots/modB_serpentina_t1_2_t2_1_k_3.png" 1776989443.18632 39234 b9b49448fe34b097165c09f3647010ba ""
   "/etc/texmf/web2c/texmf.cnf" 1774567049.53944 475 c0e671620eb5563b2130f56340a5fde8 ""
+  "/home/juanpa/Documentos/SDS/REPO_NUEVO/tp3-presentation/presentacion_tp3/presentacion.tex" 1776990671.93601 26471 816ed73419cccfd3f5a29cf5ec5e9b38 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm0500.tfm" 1136768653 3584 178baad7ffca7f5d3428a83bd7cc64c3 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm0600.tfm" 1136768653 3584 291a5713401683441e0a8c8f4417b17b ""
@@ -336,9 +337,9 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1774567087.27935 5472669 54eaf61a88b6b7896ebd0dac973cb29c ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1774567124 8214087 5c6139c9c61e3a61c043a3d1237eed2d ""
-  "presentacion.aux" 1776990693.84173 8916 0323675d7ede659a3bbf6feef85f1600 "pdflatex"
-  "presentacion.nav" 1776990693.84365 6077 da77c1d0265e252aee464a9f738c72f8 "pdflatex"
-  "presentacion.out" 1776990693.84311 521 faa0c37f149251817206de704facb028 "pdflatex"
+  "presentacion.aux" 1776990929.50744 8916 0323675d7ede659a3bbf6feef85f1600 "pdflatex"
+  "presentacion.nav" 1776990929.509 6077 da77c1d0265e252aee464a9f738c72f8 "pdflatex"
+  "presentacion.out" 1776990929.50868 521 faa0c37f149251817206de704facb028 "pdflatex"
   "presentacion.tex" 1776990671.93601 26471 816ed73419cccfd3f5a29cf5ec5e9b38 ""
   (generated)
   "presentacion.aux"
