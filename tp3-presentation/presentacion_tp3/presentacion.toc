@@ -1,5 +1,5 @@
 \beamer@sectionintoc {1}{Introducci\'on}{2}{0}{1}
 \beamer@sectionintoc {2}{Implementaci\'on}{6}{0}{2}
-\beamer@sectionintoc {3}{Simulaciones}{10}{0}{3}
-\beamer@sectionintoc {4}{Resultados}{15}{0}{4}
-\beamer@sectionintoc {5}{Conclusiones}{38}{0}{5}
+\beamer@sectionintoc {3}{Simulaciones}{9}{0}{3}
+\beamer@sectionintoc {4}{Resultados}{13}{0}{4}
+\beamer@sectionintoc {5}{Conclusiones}{53}{0}{5}

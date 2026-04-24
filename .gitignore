@@ -14,6 +14,8 @@ tp3-output/
 **/graphs/
 tp3-visual/graphs/
 tp2-visual/graphs/
+tp3-presentation/
+tp3-visual/animaciones/
 *.md
 
 # Created by git when using merge tools for conflicts

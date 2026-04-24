@@ -165,6 +165,7 @@ def load_frames(path: Path, stride: int, max_frames: int | None) -> SimulationDa
     current_clients: list[ClientSnapshot] = []
     current_servers: list[ServerSnapshot] = []
     frame_idx = 0
+    keep_frame = True
     in_stats = False
 
     with path.open("r", encoding="utf-8") as handle:
@@ -190,11 +191,16 @@ def load_frames(path: Path, stride: int, max_frames: int | None) -> SimulationDa
             if line == "---":
                 if current_time is None:
                     continue
-                if frame_idx % stride == 0:
+                if keep_frame:
                     frames.append(Frame(current_time, current_clients, current_servers))
                     if max_frames is not None and len(frames) >= max_frames:
                         break
                 frame_idx += 1
+                keep_frame = (frame_idx % stride == 0)
+                continue
+
+            # Skip per-client/per-server parsing if this frame will be discarded.
+            if not keep_frame:
                 continue
 
             parts = line.split()
@@ -298,15 +304,7 @@ def render_gif(
     server_positions = np.array([[server.x, server.y] for server in first_frame.servers], dtype=float)
 
     fig, ax_room = plt.subplots(figsize=(9.0, 10.0))
-    fig.subplots_adjust(top=0.93, bottom=0.12, left=0.10, right=0.96)
-
-    fig.text(
-        0.5, 0.02,
-        build_header(input_path, data.metadata),
-        ha="center", va="bottom",
-        fontsize=11,
-        color="#495057",
-    )
+    fig.subplots_adjust(top=0.93, bottom=0.08, left=0.10, right=0.96)
 
     ax_room.set_xlabel("x (m)")
     ax_room.set_ylabel("y (m)")

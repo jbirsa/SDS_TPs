@@ -17,7 +17,8 @@
 \usetheme[compress]{Berlin}
 \setbeamertemplate{page number in head/foot}[framenumber]
 \captionsetup{justification=centering, font={scriptsize}, skip=0pt}
-\graphicspath{{../../tp3-visual/graphs/}{resources/}}
+\graphicspath{{../../tp3-visual/}{../../tp3-visual/graphs/}{resources/}}
+\setbeamersize{text margin left=5pt, text margin right=5pt}
 
 \title[Filas Inteligentes]{Filas Inteligentes: Trabajo Pr\'actico Nro. 3}
 \subtitle{72.25 - Simulaci\'on de Sistemas}
@@ -45,31 +46,73 @@
     \end{frame}
 }
 
-\newcommand{\resultpair}[5]{%
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \parbox[c][0.08\textheight][c]{\textwidth}{\centering\small #1}
-        \\
-        \includegraphics[width=\textwidth,height=0.40\textheight,keepaspectratio]{#2}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \parbox[c][0.08\textheight][c]{\textwidth}{\centering\small #3}
-        \\
-        \includegraphics[width=\textwidth,height=0.40\textheight,keepaspectratio]{#4}
-    \end{minipage}
-
-    \vspace{0.05cm}
-    \begin{beamercolorbox}[sep=4pt,center]{block body}
-        \small #5
+\newcommand{\paramsbox}[1]{%
+    \begin{beamercolorbox}[sep=5pt,center]{block body}
+        \small #1
     \end{beamercolorbox}
 }
 
-\newcommand{\paramsbox}[1]{%
-    \begin{beamercolorbox}[sep=4pt,center]{block body}
-        \small #1
-    \end{beamercolorbox}
+% Renderiza los parámetros como una línea tiny al pie del cuerpo del frame.
+% Ocupa el mínimo espacio posible para maximizar el tamaño de los gráficos.
+\newcommand{\slideparams}[1]{%
+    \par\vspace{0.5pt}\noindent\centerline{\tiny #1}%
+}
+
+% Una sola imagen grande — los parámetros quedan pegados al pie de la imagen.
+\newcommand{\resultsingle}[2]{%
+    \centering
+    \begin{minipage}[c]{\linewidth}
+        \centering
+        \includegraphics[width=0.99\textwidth,height=0.82\textheight,keepaspectratio]{#1}\\[-0.8ex]
+        {\tiny #2}%
+    \end{minipage}%
+}
+
+% Dos imágenes lado a lado — cada una ~0.50\textwidth.
+\newcommand{\resultpair}[3]{%
+    \noindent
+    \begin{minipage}[c]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{#1}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{#2}
+    \end{minipage}%
+    \slideparams{#3}%
+}
+
+% Tres imágenes con layout 2+1:
+%     [ #1 | #2 ]
+%     [ #3 | params ]
+% Las dos de arriba ocupan media slide cada una; abajo, la tercera imagen
+% y los parámetros comparten la fila (params al costado para ahorrar espacio).
+\newcommand{\resulttriple}[4]{%
+    \noindent
+    \begin{minipage}[c]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.40\textheight,keepaspectratio]{#1}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.40\textheight,keepaspectratio]{#2}
+    \end{minipage}
+
+    \vspace{0.05cm}
+
+    \noindent
+    \begin{minipage}[c]{0.68\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.39\textheight,keepaspectratio]{#3}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.30\textwidth}
+        \centering
+        \tiny #4%
+    \end{minipage}%
+}
+
+\newcommand{\animplaceholder}[1]{%
+    \fbox{\parbox[c][0.62\textheight][c]{0.95\textwidth}{\centering\small Animation placeholder\\[0.20cm]\scriptsize #1}}%
 }
 
 \begin{document}
@@ -119,15 +162,15 @@
         \Delta t_{\text{serv}} \sim \mathrm{Exp}\!\left(\frac{1}{t_2}\right)
     \end{equation*}
 
-    Tiempo de desplazamiento del cliente:
-    \begin{equation*}
-        t_{\text{cam}} = \frac{d}{v}, \qquad v = 1\,\mathrm{m/s}
-    \end{equation*}
+    % Tiempo de desplazamiento del cliente:
+    % \begin{equation*}
+    %     t_{\text{cam}} = \frac{d}{v}, \qquad v = 1\,\mathrm{m/s}
+    % \end{equation*}
 
-    Evoluci\'on dirigida por eventos:
-    \begin{equation*}
-        t_{n+1} = t_n + \min\{\Delta t_{\text{evento}}\}
-    \end{equation*}
+    % Evoluci\'on dirigida por eventos:
+    % \begin{equation*}
+    %     t_{n+1} = t_n + \min\{\Delta t_{\text{evento}}\}
+    % \end{equation*}
 \end{frame}
 
 \begin{frame}{Asignaci\'on Probabil\'istica}
@@ -163,7 +206,7 @@
 
 \begin{frame}{Arquitectura del Motor}
     \centering
-    \includegraphics[width=0.98\textwidth,height=0.72\textheight,keepaspectratio]{diagram.jpeg}
+    % \includegraphics[width=0.98\textwidth,height=0.72\textheight,keepaspectratio]{diagram.jpeg}
 
     \vspace{0.1cm}
     \paramsbox{El motor inicializa servidores y colas, agenda eventos y escribe el estado del sistema en cada evento.}
@@ -191,94 +234,96 @@
     \footnotesize Eventos concretos: arribo de cliente, llegada al lugar en la fila, avance en fila, llegada al servidor y fin de servicio.
 \end{frame}
 
-\begin{frame}{Tipos de Fila Implementados}
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \small Fila guiada tipo serpentina\\[0.1cm]
-        \begin{tikzpicture}[scale=0.62]
-            \draw[thick] (0,0) rectangle (4.8,5.8);
-            \filldraw[fill=green!45, draw=black] (2.1,0.3) rectangle +(0.6,0.45);
-            \foreach \p in {(2.4,1.2),(1.8,1.2),(1.2,1.2),(0.6,1.2),(0.6,2.0),(1.2,2.0),(1.8,2.0),(2.4,2.0),(3.0,2.0),(3.6,2.0),(4.2,2.0),(4.2,2.8),(3.6,2.8),(3.0,2.8)} {
-                \fill[blue!65] \p circle (0.11);
-            }
-            \draw[gray, dashed]
-                (2.4,1.2) -- (1.8,1.2) -- (1.2,1.2) -- (0.6,1.2)
-                -- (0.6,2.0) -- (1.2,2.0) -- (1.8,2.0) -- (2.4,2.0)
-                -- (3.0,2.0) -- (3.6,2.0) -- (4.2,2.0)
-                -- (4.2,2.8) -- (3.6,2.8) -- (3.0,2.8);
-        \end{tikzpicture}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \small Fila libre en el espacio\\[0.1cm]
-        \begin{tikzpicture}[scale=0.62]
-            \draw[thick] (0,0) rectangle (4.8,5.8);
-            \filldraw[fill=green!45, draw=black] (2.1,0.3) rectangle +(0.6,0.45);
-            \foreach \p in {(2.4,1.2),(2.9,1.8),(2.4,2.4),(3.1,3.0),(2.5,3.6),(3.3,4.2)} {
-                \fill[red!70] \p circle (0.11);
-            }
-            \draw[gray, dashed] (2.4,1.2) -- (2.9,1.8) -- (2.4,2.4) -- (3.1,3.0) -- (2.5,3.6) -- (3.3,4.2);
-        \end{tikzpicture}
-    \end{minipage}
+% \begin{frame}{Tipos de Fila Implementados}
+%     \begin{minipage}[t]{0.48\textwidth}
+%         \centering
+%         \small Fila guiada tipo serpentina\\[0.1cm]
+%         \begin{tikzpicture}[scale=0.62]
+%             \draw[thick] (0,0) rectangle (4.8,5.8);
+%             \filldraw[fill=green!45, draw=black] (2.1,0.3) rectangle +(0.6,0.45);
+%             \foreach \p in {(2.4,1.2),(1.8,1.2),(1.2,1.2),(0.6,1.2),(0.6,2.0),(1.2,2.0),(1.8,2.0),(2.4,2.0),(3.0,2.0),(3.6,2.0),(4.2,2.0),(4.2,2.8),(3.6,2.8),(3.0,2.8)} {
+%                 \fill[blue!65] \p circle (0.11);
+%             }
+%             \draw[gray, dashed]
+%                 (2.4,1.2) -- (1.8,1.2) -- (1.2,1.2) -- (0.6,1.2)
+%                 -- (0.6,2.0) -- (1.2,2.0) -- (1.8,2.0) -- (2.4,2.0)
+%                 -- (3.0,2.0) -- (3.6,2.0) -- (4.2,2.0)
+%                 -- (4.2,2.8) -- (3.6,2.8) -- (3.0,2.8);
+%         \end{tikzpicture}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}[t]{0.48\textwidth}
+%         \centering
+%         \small Fila libre en el espacio\\[0.1cm]
+%         \begin{tikzpicture}[scale=0.62]
+%             \draw[thick] (0,0) rectangle (4.8,5.8);
+%             \filldraw[fill=green!45, draw=black] (2.1,0.3) rectangle +(0.6,0.45);
+%             \foreach \p in {(2.4,1.2),(2.9,1.8),(2.4,2.4),(3.1,3.0),(2.5,3.6),(3.3,4.2)} {
+%                 \fill[red!70] \p circle (0.11);
+%             }
+%             \draw[gray, dashed] (2.4,1.2) -- (2.9,1.8) -- (2.4,2.4) -- (3.1,3.0) -- (2.5,3.6) -- (3.3,4.2);
+%         \end{tikzpicture}
+%     \end{minipage}
 
-    \vspace{0.15cm}
-    \paramsbox{En la fila guiada los puestos se precalculan sobre una grilla. En la fila libre los puestos se generan incrementalmente a $1\,\mathrm{m}$ del anterior, manteniendo separaci\'on y permanencia dentro del recinto.}
-\end{frame}
+%     \vspace{0.15cm}
+%     \paramsbox{En la fila guiada los puestos se precalculan sobre una grilla. En la fila libre los puestos se generan incrementalmente a $1\,\mathrm{m}$ del anterior, manteniendo separaci\'on y permanencia dentro del recinto.}
+% \end{frame}
 
 \section{Simulaciones}
 
-\begin{frame}{Sistema Particular}
-    \begin{minipage}[t]{0.49\textwidth}
-        \centering
-        \small Modalidad A\\[0.1cm]
-        \begin{tikzpicture}[scale=0.66]
-            \draw[thick] (0,0) rectangle (6,6);
-            \foreach \x in {1,3,5} {
-                \filldraw[fill=green!45, draw=black] (\x-0.25,0.25) rectangle +(0.5,0.35);
-            }
-            \draw[gray, dashed] (1.0,1.1) -- (0.75,1.65) -- (1.05,2.20) -- (0.82,2.75) -- (1.15,3.28);
-            \draw[gray, dashed] (3.0,1.1) -- (3.28,1.58) -- (2.96,2.12) -- (3.36,2.66) -- (3.06,3.18) -- (3.42,3.72);
-            \draw[gray, dashed] (5.0,1.1) -- (4.72,1.58) -- (5.12,2.10) -- (4.82,2.66) -- (5.16,3.18);
-            \foreach \p in {(1.0,1.1),(0.75,1.65),(1.05,2.20),(0.82,2.75),(1.15,3.28),(3.0,1.1),(3.28,1.58),(2.96,2.12),(3.36,2.66),(3.06,3.18),(3.42,3.72),(5.0,1.1),(4.72,1.58),(5.12,2.10),(4.82,2.66),(5.16,3.18)} {
-                \fill[blue!65] \p circle (0.08);
-            }
-        \end{tikzpicture}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.49\textwidth}
-        \centering
-        \small Modalidad B\\[0.1cm]
-        \begin{tikzpicture}[scale=0.66]
-            \draw[thick] (0,0) rectangle (6,6);
-            \foreach \x in {1,3,5} {
-                \filldraw[fill=green!45, draw=black] (\x-0.25,0.25) rectangle +(0.5,0.35);
-            }
-            \draw[gray, dashed] (3.0,1.4) -- (2.72,1.92) -- (3.14,2.40) -- (2.84,2.96) -- (3.30,3.48) -- (3.02,4.02) -- (3.46,4.56);
-            \foreach \p in {(3.0,1.4),(2.72,1.92),(3.14,2.40),(2.84,2.96),(3.30,3.48),(3.02,4.02),(3.46,4.56)} {
-                \fill[red!70] \p circle (0.08);
-            }
-        \end{tikzpicture}
-    \end{minipage}
+% \begin{frame}{Sistema Particular}
+%     \begin{minipage}[t]{0.49\textwidth}
+%         \centering
+%         \small Modalidad A\\[0.1cm]
+%         \begin{tikzpicture}[scale=0.66]
+%             \draw[thick] (0,0) rectangle (6,6);
+%             \foreach \x in {1,3,5} {
+%                 \filldraw[fill=green!45, draw=black] (\x-0.25,0.25) rectangle +(0.5,0.35);
+%             }
+%             \draw[gray, dashed] (1.0,1.1) -- (0.75,1.65) -- (1.05,2.20) -- (0.82,2.75) -- (1.15,3.28);
+%             \draw[gray, dashed] (3.0,1.1) -- (3.28,1.58) -- (2.96,2.12) -- (3.36,2.66) -- (3.06,3.18) -- (3.42,3.72);
+%             \draw[gray, dashed] (5.0,1.1) -- (4.72,1.58) -- (5.12,2.10) -- (4.82,2.66) -- (5.16,3.18);
+%             \foreach \p in {(1.0,1.1),(0.75,1.65),(1.05,2.20),(0.82,2.75),(1.15,3.28),(3.0,1.1),(3.28,1.58),(2.96,2.12),(3.36,2.66),(3.06,3.18),(3.42,3.72),(5.0,1.1),(4.72,1.58),(5.12,2.10),(4.82,2.66),(5.16,3.18)} {
+%                 \fill[blue!65] \p circle (0.08);
+%             }
+%         \end{tikzpicture}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}[t]{0.49\textwidth}
+%         \centering
+%         \small Modalidad B\\[0.1cm]
+%         \begin{tikzpicture}[scale=0.66]
+%             \draw[thick] (0,0) rectangle (6,6);
+%             \foreach \x in {1,3,5} {
+%                 \filldraw[fill=green!45, draw=black] (\x-0.25,0.25) rectangle +(0.5,0.35);
+%             }
+%             \draw[gray, dashed] (3.0,1.4) -- (2.72,1.92) -- (3.14,2.40) -- (2.84,2.96) -- (3.30,3.48) -- (3.02,4.02) -- (3.46,4.56);
+%             \foreach \p in {(3.0,1.4),(2.72,1.92),(3.14,2.40),(2.84,2.96),(3.30,3.48),(3.02,4.02),(3.46,4.56)} {
+%                 \fill[red!70] \p circle (0.08);
+%             }
+%         \end{tikzpicture}
+%     \end{minipage}
 
-    \vspace{0.15cm}
-    \paramsbox{Recinto cuadrado de $30 \times 30\,\mathrm{m}^2$, servidores sobre un borde, clientes generados en posiciones aleatorias del plano y movimiento a $1\,\mathrm{m/s}$.}
-\end{frame}
+%     \vspace{0.15cm}
+%     \paramsbox{Recinto cuadrado de $30 \times 30\,\mathrm{m}^2$, servidores sobre un borde, clientes generados en posiciones aleatorias del plano y movimiento a $1\,\mathrm{m/s}$.}
+% \end{frame}
 
 \begin{frame}{Par\'ametros Estudiados}
     Par\'ametros fijos del sistema:
     \begin{itemize}
         \item Recinto: $30 \times 30\,\mathrm{m}^2$.
         \item Velocidad de caminata: $1\,\mathrm{m/s}$.
-        \item Llegadas Poisson y servicios exponenciales.
-        \item Animaciones ilustrativas con $k=3$.
+        % \item Llegadas Poisson y servicios exponenciales.
+        % \item Animaciones ilustrativas con $k=3$.
+        \item Tipo de fila: guiada, serpentina.
+        \item $T_f = 1000\,\mathrm{s}$.
     \end{itemize}
 
-    Barridos cuantitativos realizados sobre fila guiada tipo serpentina:
+    Parametros variables:
     \begin{itemize}
-        \item $t_2 \in [1, 8] \;\mathrm{s}$, con $t_1 = 1\,\mathrm{s}$ y $k = 5$.
-        \item $t_1 \in [0.3, 3] \;\mathrm{s}$, con $t_2 = 3\,\mathrm{s}$ y $k = 5$.
-        \item $k \in [1, 8]$, con $t_1 = 1\,\mathrm{s}$ y $t_2 = 3\,\mathrm{s}$.
+        \item $t_2 \in [1, 8] \;\mathrm{s}$
+        \item $t_1 \in [0.3, 3] \;\mathrm{s}$
+        \item $k \in [1, 8]$
     \end{itemize}
 \end{frame}
 
@@ -290,15 +335,15 @@
 
     Promedio temporal en r\'egimen estacionario:
     \begin{equation*}
-        \bar{L} = \frac{1}{t_f} \int_0^{t_f} L(t) \, dt
+        \bar{L} = \frac{1}{t_f-t_{est}} \int_{t_{est}}^{t_f} L(t) \, dt
     \end{equation*}
 
-    Tasa de crecimiento cuando no hay estacionario:
-    \begin{equation*}
-        m = \frac{dL}{dt}
-    \end{equation*}
+    Tasa de crecimiento:
+    \begin{itemize}
+    \item $m =$ pendiente del ajuste lineal de la segunda mitad de $L(t)$. Si $m < 0.02$ clientes/s, se considera estable.
+    \end{itemize}
 
-    \paramsbox{La estabilidad se eval\'ua a partir del ajuste lineal de la segunda mitad de la serie temporal de $L(t)$.}
+    % \paramsbox{La estabilidad se eval\'ua a partir del ajuste lineal de la segunda mitad de la serie temporal de $L(t)$.}
 \end{frame}
 
 \begin{frame}{Observables Definidos}
@@ -311,217 +356,298 @@
         \bar{\tau} = \frac{1}{N_s} \sum_{i=1}^{N_s} \tau_i
     \end{equation*}
 
-    \paramsbox{Si el ajuste lineal de la segunda mitad de $L(t)$ da $m < 0.05$ clientes/s, reportamos $\bar{L}$; si no, reportamos $m$. Corridas: $t_f = 1000\,\mathrm{s}$ y una realizaci\'on por punto.}
+    % \paramsbox{Si el ajuste lineal de la segunda mitad de $L(t)$ da $m < 0.05$ clientes/s, reportamos $\bar{L}$; si no, reportamos $m$. Corridas: $t_f = 1000\,\mathrm{s}$ y una realizaci\'on por punto.}
 \end{frame}
 
 \section{Resultados}
 
-\begin{frame}{Animaciones Representativas}
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \small Fila guiada tipo serpentina\\[0.1cm]
-        \includegraphics[height=0.42\textheight, keepaspectratio]{frame_A_SERPENTINA.png}\\[0.05cm]
-        \scriptsize \texttt{Link a video: pendiente}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \small Fila libre\\[0.1cm]
-        \includegraphics[height=0.42\textheight, keepaspectratio]{frame_A_FREE.png}\\[0.05cm]
-        \scriptsize \url{https://youtube.com/shorts/uP6HpX2jsdU?feature=share}
-    \end{minipage}
+% ================================================================
+% MODALIDAD A
+% ================================================================
 
-    \vspace{0.15cm}
-    \paramsbox{Ejemplos ilustrativos con modalidad A y $k=3$.}
+\begin{frame}{Animaciones --- Modalidad A}
+    \begin{minipage}[c]{0.49\textwidth}
+        \centering
+        \animplaceholder{Modalidad A}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.49\textwidth}
+        \centering
+        \animplaceholder{Modalidad A}
+    \end{minipage}
+    \slideparams{$t_1 = 1\,\mathrm{s}$ \, | \, $t_2 = 3\,\mathrm{s}$ \, | \, $k = 3$}
 \end{frame}
 
-\begin{frame}{Barrido de $t_2$}{Modalidad A}
-    \resultpair
-        {Largo promedio de fila}
-        {1_input-t2/1_sweep_A_SERPENTINA_largo_fila.png}
-        {Tasa de crecimiento}
-        {1_input-t2/1_sweep_A_SERPENTINA_tasa_crecimiento.png}
-        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+% ---------------- t2 — Modalidad A ------------------------------
+
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad A --- $\langle L\rangle$ vs tiempo}
+    \resultsingle
+        {1_input-t2/0_sweep_A_SERPENTINA_L_vs_tiempo_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_2$}{Modalidad A}
-    \resultpair
-        {Histograma de permanencia, $t_2 = 1\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad A --- Largo de la fila}
+    \resultsingle
+        {1_input-t2/1_sweep_A_SERPENTINA_largo_fila_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad A --- Tasa de crecimiento}
+    \resultsingle
+        {1_input-t2/1_sweep_A_SERPENTINA_tasa_crecimiento_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad A --- Histogramas de permanencia}
+    \resulttriple
         {1_input-t2/2_sweep_A_SERPENTINA_hist_permanencia_t2=1.png}
-        {Histograma de permanencia, $t_2 = 4\,\mathrm{s}$}
         {1_input-t2/2_sweep_A_SERPENTINA_hist_permanencia_t2=4.png}
-        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
-\end{frame}
-
-\begin{frame}{Barrido de $t_2$}{Modalidad A}
-    \resultpair
-        {Histograma de permanencia, $t_2 = 8\,\mathrm{s}$}
         {1_input-t2/2_sweep_A_SERPENTINA_hist_permanencia_t2=8.png}
-        {Permanencia promedio}
-        {1_input-t2/3_sweep_A_SERPENTINA_permanencia.png}
-        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | $t_2 \in \{1,\,4,\,8\}\,\mathrm{s}$ (izq.\ a der.)}
 \end{frame}
 
-\begin{frame}{Barrido de $t_2$}{Modalidad B}
-    \resultpair
-        {Largo promedio de fila}
-        {1_input-t2/4_sweep_B_SERPENTINA_largo_fila.png}
-        {Tasa de crecimiento}
-        {1_input-t2/4_sweep_B_SERPENTINA_tasa_crecimiento.png}
-        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad A --- Tiempo de permanencia}
+    \resultsingle
+        {1_input-t2/3_sweep_A_SERPENTINA_permanencia_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_2$}{Modalidad B}
-    \resultpair
-        {Histograma de permanencia, $t_2 = 1\,\mathrm{s}$}
-        {1_input-t2/5_sweep_B_SERPENTINA_hist_permanencia_t2=1.png}
-        {Histograma de permanencia, $t_2 = 4\,\mathrm{s}$}
-        {1_input-t2/5_sweep_B_SERPENTINA_hist_permanencia_t2=4.png}
-        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+% ---------------- t1 — Modalidad A ------------------------------
+
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad A --- $\langle L\rangle$ vs tiempo}
+    \resultsingle
+        {2_input-t1/0_sweep_A_t1_SERPENTINA_L_vs_tiempo_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_2$}{Modalidad B}
-    \resultpair
-        {Histograma de permanencia, $t_2 = 8\,\mathrm{s}$}
-        {1_input-t2/5_sweep_B_SERPENTINA_hist_permanencia_t2=8.png}
-        {Permanencia promedio}
-        {1_input-t2/6_sweep_B_SERPENTINA_permanencia.png}
-        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad A --- Largo de la fila}
+    \resultsingle
+        {2_input-t1/1_sweep_A_t1_SERPENTINA_largo_fila_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_2$}{Comparaci\'on entre modalidades}
-    \resultpair
-        {Histograma de permanencia, $t_2 = 3\,\mathrm{s}$}
-        {1_input-t2/7_sweep_AvB_t2_SERPENTINA_hist_permanencia_t2=3.png}
-        {Largo promedio de fila}
-        {1_input-t2/7_sweep_AvB_t2_SERPENTINA_largo_fila.png}
-        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad A --- Tasa de crecimiento}
+    \resultsingle
+        {2_input-t1/1_sweep_A_t1_SERPENTINA_tasa_crecimiento_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_1$}{Modalidad A}
-    \resultpair
-        {Largo promedio de fila}
-        {2_input-t1/1_sweep_A_t1_SERPENTINA_largo_fila.png}
-        {Tasa de crecimiento}
-        {2_input-t1/1_sweep_A_t1_SERPENTINA_tasa_crecimiento.png}
-        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
-\end{frame}
-
-\begin{frame}{Barrido de $t_1$}{Modalidad A}
-    \resultpair
-        {Histograma de permanencia, $t_1 = 0.3\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad A --- Histogramas de permanencia}
+    \resulttriple
         {2_input-t1/2_sweep_A_t1_SERPENTINA_hist_permanencia_t1=0.3.png}
-        {Histograma de permanencia, $t_1 = 1.8\,\mathrm{s}$}
         {2_input-t1/2_sweep_A_t1_SERPENTINA_hist_permanencia_t1=1.8.png}
-        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
-\end{frame}
-
-\begin{frame}{Barrido de $t_1$}{Modalidad A}
-    \resultpair
-        {Histograma de permanencia, $t_1 = 3\,\mathrm{s}$}
         {2_input-t1/2_sweep_A_t1_SERPENTINA_hist_permanencia_t1=3.png}
-        {Permanencia promedio}
-        {2_input-t1/3_sweep_A_t1_SERPENTINA_permanencia.png}
-        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | $t_1 \in \{0.3,\,1.8,\,3\}\,\mathrm{s}$ (izq.\ a der.)}
 \end{frame}
 
-\begin{frame}{Barrido de $t_1$}{Modalidad B}
-    \resultpair
-        {Largo promedio de fila}
-        {2_input-t1/4_sweep_B_t1_SERPENTINA_largo_fila.png}
-        {Tasa de crecimiento}
-        {2_input-t1/4_sweep_B_t1_SERPENTINA_tasa_crecimiento.png}
-        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad A --- Tiempo de permanencia}
+    \resultsingle
+        {2_input-t1/3_sweep_A_t1_SERPENTINA_permanencia_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_1$}{Modalidad B}
-    \resultpair
-        {Histograma de permanencia, $t_1 = 0.3\,\mathrm{s}$}
-        {2_input-t1/5_sweep_B_t1_SERPENTINA_hist_permanencia_t1=0.3.png}
-        {Histograma de permanencia, $t_1 = 1.8\,\mathrm{s}$}
-        {2_input-t1/5_sweep_B_t1_SERPENTINA_hist_permanencia_t1=1.8.png}
-        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+% ---------------- k — Modalidad A -------------------------------
+
+\begin{frame}{Variaci\'on de $k$ --- Modalidad A --- $\langle L\rangle$ vs tiempo}
+    \resultsingle
+        {3_input-k/0_sweep_A_k_SERPENTINA_L_vs_tiempo_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_1$}{Modalidad B}
-    \resultpair
-        {Histograma de permanencia, $t_1 = 3\,\mathrm{s}$}
-        {2_input-t1/5_sweep_B_t1_SERPENTINA_hist_permanencia_t1=3.png}
-        {Permanencia promedio}
-        {2_input-t1/6_sweep_B_t1_SERPENTINA_permanencia.png}
-        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $k$ --- Modalidad A --- Largo de la fila}
+    \resultsingle
+        {3_input-k/1_sweep_A_k_SERPENTINA_largo_fila_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $t_1$}{Comparaci\'on entre modalidades}
-    \resultpair
-        {Histograma de permanencia, $t_1 = 3\,\mathrm{s}$}
-        {2_input-t1/7_sweep_AvB_t1_SERPENTINA_hist_permanencia_t1=3.png}
-        {Largo promedio de fila}
-        {2_input-t1/7_sweep_AvB_t1_SERPENTINA_largo_fila.png}
-        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $k$ --- Modalidad A --- Tasa de crecimiento}
+    \resultsingle
+        {3_input-k/1_sweep_A_k_SERPENTINA_tasa_crecimiento_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $k$}{Modalidad A}
-    \resultpair
-        {Largo promedio de fila}
-        {3_input-k/1_sweep_A_k_SERPENTINA_largo_fila.png}
-        {Tasa de crecimiento}
-        {3_input-k/1_sweep_A_k_SERPENTINA_tasa_crecimiento.png}
-        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
-\end{frame}
-
-\begin{frame}{Barrido de $k$}{Modalidad A}
-    \resultpair
-        {Histograma de permanencia, $k = 1$}
+\begin{frame}{Variaci\'on de $k$ --- Modalidad A --- Histogramas de permanencia}
+    \resulttriple
         {3_input-k/2_sweep_A_k_SERPENTINA_hist_permanencia_k=1.png}
-        {Histograma de permanencia, $k = 4$}
         {3_input-k/2_sweep_A_k_SERPENTINA_hist_permanencia_k=4.png}
-        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
-\end{frame}
-
-\begin{frame}{Barrido de $k$}{Modalidad A}
-    \resultpair
-        {Histograma de permanencia, $k = 8$}
         {3_input-k/2_sweep_A_k_SERPENTINA_hist_permanencia_k=8.png}
-        {Permanencia promedio}
-        {3_input-k/3_sweep_A_k_SERPENTINA_permanencia.png}
-        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | $k \in \{1,\,4,\,8\}$ (izq.\ a der.)}
 \end{frame}
 
-\begin{frame}{Barrido de $k$}{Modalidad B}
-    \resultpair
-        {Largo promedio de fila}
-        {3_input-k/4_sweep_B_k_SERPENTINA_largo_fila.png}
-        {Tasa de crecimiento}
-        {3_input-k/4_sweep_B_k_SERPENTINA_tasa_crecimiento.png}
-        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+\begin{frame}{Variaci\'on de $k$ --- Modalidad A --- Tiempo de permanencia}
+    \resultsingle
+        {3_input-k/3_sweep_A_k_SERPENTINA_permanencia_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
 \end{frame}
 
-\begin{frame}{Barrido de $k$}{Modalidad B}
-    \resultpair
-        {Histograma de permanencia, $k = 1$}
+% ================================================================
+% MODALIDAD B
+% ================================================================
+
+\begin{frame}{Animaciones --- Modalidad B}
+    \begin{minipage}[c]{0.49\textwidth}
+        \centering
+        \animplaceholder{Modalidad B}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.49\textwidth}
+        \centering
+        \animplaceholder{Modalidad B}
+    \end{minipage}
+    \slideparams{$t_1 = 1\,\mathrm{s}$ \, | \, $t_2 = 3\,\mathrm{s}$ \, | \, $k = 3$}
+\end{frame}
+
+% ---------------- t2 — Modalidad B ------------------------------
+
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad B --- $\langle L\rangle$ vs tiempo}
+    \resultsingle
+        {1_input-t2/0_sweep_B_SERPENTINA_L_vs_tiempo_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+% (Modalidad B no presenta configuraciones estacionarias en el barrido de t2
+%  segun el criterio cuantitativo, por lo que se omite la slide de L vs t2.)
+
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad B --- Tasa de crecimiento}
+    \resultsingle
+        {1_input-t2/4_sweep_B_SERPENTINA_tasa_crecimiento_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad B --- Histogramas de permanencia}
+    \resulttriple
+        {1_input-t2/5_sweep_B_SERPENTINA_hist_permanencia_t2=1.png}
+        {1_input-t2/5_sweep_B_SERPENTINA_hist_permanencia_t2=4.png}
+        {1_input-t2/5_sweep_B_SERPENTINA_hist_permanencia_t2=8.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | $t_2 \in \{1,\,4,\,8\}\,\mathrm{s}$ (izq.\ a der.)}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_2$ --- Modalidad B --- Tiempo de permanencia}
+    \resultsingle
+        {1_input-t2/6_sweep_B_SERPENTINA_permanencia_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+% ---------------- t1 — Modalidad B ------------------------------
+
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad B --- $\langle L\rangle$ vs tiempo}
+    \resultsingle
+        {2_input-t1/0_sweep_B_t1_SERPENTINA_L_vs_tiempo_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad B --- Largo de la fila}
+    \resultsingle
+        {2_input-t1/4_sweep_B_t1_SERPENTINA_largo_fila_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad B --- Tasa de crecimiento}
+    \resultsingle
+        {2_input-t1/4_sweep_B_t1_SERPENTINA_tasa_crecimiento_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad B --- Histogramas de permanencia}
+    \resulttriple
+        {2_input-t1/5_sweep_B_t1_SERPENTINA_hist_permanencia_t1=0.3.png}
+        {2_input-t1/5_sweep_B_t1_SERPENTINA_hist_permanencia_t1=1.8.png}
+        {2_input-t1/5_sweep_B_t1_SERPENTINA_hist_permanencia_t1=3.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | $t_1 \in \{0.3,\,1.8,\,3\}\,\mathrm{s}$ (izq.\ a der.)}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $t_1$ --- Modalidad B --- Tiempo de permanencia}
+    \resultsingle
+        {2_input-t1/6_sweep_B_t1_SERPENTINA_permanencia_FIXED.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+% ---------------- k — Modalidad B -------------------------------
+
+\begin{frame}{Variaci\'on de $k$ --- Modalidad B --- $\langle L\rangle$ vs tiempo}
+    \resultsingle
+        {3_input-k/0_sweep_B_k_SERPENTINA_L_vs_tiempo_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
+\end{frame}
+
+% (Modalidad B no presenta configuraciones estacionarias en el barrido de k
+%  segun el criterio cuantitativo, por lo que se omite la slide de L vs k.)
+
+\begin{frame}{Variaci\'on de $k$ --- Modalidad B --- Tasa de crecimiento}
+    \resultsingle
+        {3_input-k/4_sweep_B_k_SERPENTINA_tasa_crecimiento_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Variaci\'on de $k$ --- Modalidad B --- Histogramas de permanencia}
+    \resulttriple
         {3_input-k/5_sweep_B_k_SERPENTINA_hist_permanencia_k=1.png}
-        {Histograma de permanencia, $k = 4$}
         {3_input-k/5_sweep_B_k_SERPENTINA_hist_permanencia_k=4.png}
-        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
-\end{frame}
-
-\begin{frame}{Barrido de $k$}{Modalidad B}
-    \resultpair
-        {Histograma de permanencia, $k = 8$}
         {3_input-k/5_sweep_B_k_SERPENTINA_hist_permanencia_k=8.png}
-        {Permanencia promedio}
-        {3_input-k/6_sweep_B_k_SERPENTINA_permanencia.png}
-        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | $k \in \{1,\,4,\,8\}$ (izq.\ a der.)}
 \end{frame}
 
-\begin{frame}{Barrido de $k$}{Comparaci\'on entre modalidades}
+\begin{frame}{Variaci\'on de $k$ --- Modalidad B --- Tiempo de permanencia}
+    \resultsingle
+        {3_input-k/6_sweep_B_k_SERPENTINA_permanencia_FIXED.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
+\end{frame}
+
+% ================================================================
+% COMPARATIVA A vs B (dos slides por input)
+% ================================================================
+
+\begin{frame}{Comparaci\'on A vs B --- $t_2$ --- Tasa de crecimiento}
+    \resultsingle
+        {1_input-t2/m_vs_t2_FIXED_AVB.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Comparaci\'on A vs B --- $t_2$ --- Tiempo de permanencia}
+    \resultsingle
+        {1_input-t2/W_vs_t2_FIXED_AVB.png}
+        {$t_1 = 1\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Comparaci\'on A vs B --- $t_1$ --- Largo de fila y tasa de crecimiento}
     \resultpair
-        {Histograma de permanencia, $k = 8$}
-        {3_input-k/7_sweep_AvB_k_SERPENTINA_hist_permanencia_k=8.png}
-        {Largo promedio de fila}
-        {3_input-k/7_sweep_AvB_k_SERPENTINA_largo_fila.png}
-        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | fila guiada: serpentina | $t_f = 1000\,\mathrm{s}$}
+        {2_input-t1/L_vs_t1_FIXED_AVB.png}
+        {2_input-t1/m_vs_t1_FIXED_AVB.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Comparaci\'on A vs B --- $t_1$ --- Tiempo de permanencia}
+    \resultsingle
+        {2_input-t1/W_vs_t1_FIXED_AVB.png}
+        {$t_2 = 3\,\mathrm{s}$ | $k = 5$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Comparaci\'on A vs B --- $k$ --- Tasa de crecimiento}
+    \resultsingle
+        {3_input-k/m_vs_k_FIXED_AVB.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Comparaci\'on A vs B --- $k$ --- Tiempo de permanencia}
+    \resultsingle
+        {3_input-k/W_vs_k_FIXED_AVB.png}
+        {$t_1 = 1\,\mathrm{s}$ | $t_2 = 3\,\mathrm{s}$ | runs = 30}
+\end{frame}
+
+\begin{frame}{Mapa de Calor --- Largo de la fila --- Modalidad A}
+    \resultsingle
+        {graphs/heatmaps/heatmap_L_A_FIXED.png}
+        {k=5 | runs = 30}
+\end{frame}
+
+\begin{frame}{Mapa de Calor --- Tasa de crecimiento --- Modalidad B}
+    \resultsingle
+        {graphs/heatmaps/heatmap_m_B_FIXED.png}
+        {k=5 | runs = 30}
+\end{frame}
+
+\begin{frame}{Mapa de Calor --- Tiempo de permanencia --- Modalidad A}
+    \resultsingle
+        {graphs/heatmaps/heatmap_W_A_FIXED.png}
+        {k=5 | runs = 30}
 \end{frame}
 
 \section{Conclusiones}
