@@ -82,6 +82,13 @@
     \slideparams{#3}%
 }
 
+\newcommand{\linkedimage}[2]{%
+    \begin{tikzpicture}
+        \node[inner sep=0pt] (img) {\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{#1}};
+        \node[fill=white, fill opacity=0.88, text opacity=1, rounded corners=2pt, inner sep=4pt, text width=0.82\textwidth, align=center] at (img.center) {\href{#2}{\scriptsize\ttfamily\nolinkurl{#2}}};
+    \end{tikzpicture}%
+}
+
 % Tres imágenes con layout 2+1:
 %     [ #1 | #2 ]
 %     [ #3 | params ]
@@ -206,7 +213,7 @@
 
 \begin{frame}{Arquitectura del Motor}
     \centering
-    % \includegraphics[width=0.98\textwidth,height=0.72\textheight,keepaspectratio]{diagram.jpeg}
+    \includegraphics[width=0.98\textwidth,height=0.72\textheight,keepaspectratio]{diagram/diagram.jpeg}
 
     \vspace{0.1cm}
     \paramsbox{El motor inicializa servidores y colas, agenda eventos y escribe el estado del sistema en cada evento.}
@@ -368,13 +375,14 @@
 \begin{frame}{Animaciones --- Modalidad A}
     \begin{minipage}[c]{0.49\textwidth}
         \centering
-        \animplaceholder{Modalidad A}
+        \linkedimage{screenshots/modA_serpentina_t1_1_t2_3.5_k_3.png}{https://youtu.be/chYGTxwPIMA}\\[-1.2ex]
+        {\tiny $t_1 = 1$ \, | \, $t_2 = 3.5$ \, | \, $k = 3$}
     \end{minipage}\hfill
     \begin{minipage}[c]{0.49\textwidth}
         \centering
-        \animplaceholder{Modalidad A}
+        \linkedimage{screenshots/modA_free_t1_1_t2_2_k_3.png}{https://youtube.com/shorts/atdTqivG_G4}\\[-1.2ex]
+        {\tiny $t_1 = 1$ \, | \, $t_2 = 2$ \, | \, $k = 3$}
     \end{minipage}
-    \slideparams{$t_1 = 1\,\mathrm{s}$ \, | \, $t_2 = 3\,\mathrm{s}$ \, | \, $k = 3$}
 \end{frame}
 
 % ---------------- t2 — Modalidad A ------------------------------
@@ -486,13 +494,14 @@
 \begin{frame}{Animaciones --- Modalidad B}
     \begin{minipage}[c]{0.49\textwidth}
         \centering
-        \animplaceholder{Modalidad B}
+        \linkedimage{screenshots/modB_serpentina_t1_2_t2_1_k_3.png}{https://youtu.be/II45gJsXiBg}\\[-1.2ex]
+        {\tiny $t_1 = 2$ \, | \, $t_2 = 1$ \, | \, $k = 3$}
     \end{minipage}\hfill
     \begin{minipage}[c]{0.49\textwidth}
         \centering
-        \animplaceholder{Modalidad B}
+        \linkedimage{screenshots/modB_free_t1_1_t2_3.5_k_3.png}{https://youtu.be/u6Md6TuGSJ4}\\[-1.2ex]
+        {\tiny $t_1 = 1$ \, | \, $t_2 = 3.5$ \, | \, $k = 3$}
     \end{minipage}
-    \slideparams{$t_1 = 1\,\mathrm{s}$ \, | \, $t_2 = 3\,\mathrm{s}$ \, | \, $k = 3$}
 \end{frame}
 
 % ---------------- t2 — Modalidad B ------------------------------
